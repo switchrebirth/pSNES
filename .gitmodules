@@ -1,0 +1,6 @@
+[submodule "libcross2dui"]
+	path = libcross2dui
+	url = git@github.com:Cpasjuste/libcross2dui.git
+[submodule "snes9x"]
+	path = snes9x
+	url = git@github.com:Cpasjuste/snes9x.git

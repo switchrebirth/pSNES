@@ -1,0 +1,176 @@
+cmake_minimum_required(VERSION 3.0)
+#set(CMAKE_VERBOSE_MAKEFILE ON)
+
+# psnes version
+set(PSNES_VERSION_MAJOR 1)
+set(PSNES_VERSION_MINOR 0)
+
+# delete cmake cache folder before changing this option
+set(BUILD_SFML OFF CACHE BOOL "Build with SFML support")
+set(BUILD_SDL1 OFF CACHE BOOL "Build with SDL1 support (software, osmesa) support")
+set(BUILD_SDL1_GL OFF CACHE BOOL "Build with SDL1 support (hardware rendering, fast, needs BUILD_SDL1=ON)")
+set(BUILD_SDL2 ON CACHE BOOL "Build with SDL2 (software) support")
+set(BUILD_SDL2_GL ON CACHE BOOL "Build with SDL2 support (hardware rendering, fast, needs BUILD_SDL2=ON)")
+set(BUILD_PSP2 OFF CACHE BOOL "Build with PSP2 support")
+set(BUILD_PS3 OFF CACHE BOOL "Build with PS3 support")
+set(BUILD_3DS OFF CACHE BOOL "Build with 3DS support")
+set(BUILD_NX OFF CACHE BOOL "Build with NX (SWITCH) support")
+set(BUILD_NX_GL OFF CACHE BOOL "Build with NX (SWITCH) support (software, osmesa)")
+
+set(BUILD_PFBA OFF CACHE BOOL "Build with PFBA support")
+set(BUILD_SNES9X ON CACHE BOOL "Build with SNES9X support")
+
+option(BUILD_SOUND "Build with audio support" ON)
+option(BUILD_SCREENSHOT "Build with screenshot support" ON)
+option(BUILD_NETPLAY "Build with screenshot support" OFF)
+option(BUILD_GAMEPAD "Build with gamepad support" ON)
+option(BUILD_GZIP "Build with gzip support" ON)
+option(BUILD_ZIP "Build with zip support" ON)
+option(BUILD_JMA "Build with jma support" OFF)
+option(BUILD_DEBUGGER "Build with debugger support" OFF)
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(BUILD_DEBUG true CACHE BOOL "Debug build")
+endif ()
+
+# add libcross2d/libcross2dui library. If you want to port pfba to another platform,
+# you should (may) only need to port libcross2d library.
+add_subdirectory(libcross2dui)
+
+execute_process(COMMAND "date" "+%Y.%m.%d" OUTPUT_VARIABLE BUILD_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+project(psnes)
+
+##############
+# SNES9X
+##############
+set(SNES9X_INC
+        snes9x
+        snes9x/apu
+        snes9x/apu/bapu
+        snes9x/apu/bapu/dsp
+        snes9x/apu/bapu/smp
+        snes9x/apu/bapu/snes
+        snes9x/filter
+        )
+
+file(GLOB SNES9X_SRC
+        snes9x/*.c*
+        snes9x/apu/*.c*
+        snes9x/apu/bapu/*.c*
+        snes9x/apu/bapu/dsp/*.c*
+        snes9x/apu/bapu/smp/*.c*
+        snes9x/filter/*.c*
+        )
+
+list(REMOVE_ITEM SNES9X_SRC
+        ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/spc7110dec.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/spc7110emu.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/srtcemu.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/xbrz.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/apu/bapu/smp/algorithms.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/apu/bapu/smp/core.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/apu/bapu/smp/memory.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/apu/bapu/smp/timing.cpp
+        )
+
+set(SNES9X_CFLAGS
+        #-O0 -g
+        -fomit-frame-pointer -fno-exceptions
+        -pedantic -Wall -W -Wno-unused-parameter
+        -DHAVE_LIBPNG -DHAVE_MKSTEMP -DHAVE_STRINGS_H
+        -DHAVE_SYS_IOCTL_H -DHAVE_STDINT_H -DRIGHTSHIFT_IS_SAR
+        -DGFX_MULTI_FORMAT
+        -D__PSNES_VERSION_MAJOR__=${PSNES_VERSION_MAJOR}
+        -D__PSNES_VERSION_MINOR__=${PSNES_VERSION_MINOR}
+        )
+
+set(SNES9X_LDFLAGS m z png)
+
+#####################
+# OPTIONS
+#####################
+if (BUILD_SOUND)
+    #list(APPEND SNES9X_CFLAGS -DUSE_THREADS)
+    #list(APPEND SNES9X_LDFLAGS pthread)
+else()
+    list(APPEND SNES9X_CFLAGS -DNOSOUND)
+endif (BUILD_SOUND)
+if (BUILD_SCREENSHOT)
+endif (BUILD_SCREENSHOT)
+if (BUILD_NETPLAY)
+endif (BUILD_NETPLAY)
+if (BUILD_GAMEPAD)
+    list(APPEND SNES9X_CFLAGS -DJOYSTICK_SUPPORT)
+endif (BUILD_GAMEPAD)
+if (BUILD_GZIP)
+    list(APPEND SNES9X_CFLAGS -DZLIB)
+endif (BUILD_GZIP)
+if (BUILD_ZIP)
+    set(UNZIP_INC snes9x/unzip)
+    file(GLOB UNZIP_SRC snes9x/unzip/*.c*)
+    list(REMOVE_ITEM UNZIP_SRC
+            ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/unzip/iowin32.c
+            ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/unzip/minizip.c
+            ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/unzip/miniunz.c
+            )
+    list(APPEND SNES9X_CFLAGS -DUNZIP_SUPPORT)
+endif (BUILD_ZIP)
+if (BUILD_JMA)
+    set(JMA_INC snes9x/jma)
+    file(GLOB JMA_SRC snes9x/jma/*.c*)
+    list(APPEND SNES9X_CFLAGS -DJMA_SUPPORT)
+endif (BUILD_JMA)
+if (BUILD_DEBUGGER)
+endif (BUILD_DEBUGGER)
+
+##############
+# psnes
+##############
+set(PSNES_INC psnes)
+file(GLOB PSNES_SRC psnes/*.c*)
+
+#####################
+# PLATORM SPECIFIC
+#####################
+if (BUILD_PSP2)
+    #####################
+    # PSP2 PLATORM
+    #####################
+elseif (BUILD_NX)
+    #####################
+    # NX PLATORM
+    #####################
+elseif (BUILD_SDL2)
+    #####################
+    # SDL2 PLATORM
+    #####################
+endif (BUILD_PSP2)
+
+#####################
+# snes9x executable
+#####################
+add_executable(${CMAKE_PROJECT_NAME}.elf ${PSNES_SRC} ${SNES9X_SRC} ${UNZIP_SRC} ${JMA_SRC})
+target_include_directories(${CMAKE_PROJECT_NAME}.elf PRIVATE ${PSNES_INC} ${SNES9X_INC} ${UNZIP_INC} ${JMA_INC})
+target_compile_options(${CMAKE_PROJECT_NAME}.elf PRIVATE ${SNES9X_CFLAGS})
+target_compile_options(${CMAKE_PROJECT_NAME}.elf PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-std=c++11 -fpermissive -fno-rtti>)
+target_link_libraries(${CMAKE_PROJECT_NAME}.elf cross2dui ${SNES9X_LDFLAGS})
+
+#####################
+# PSP2 (vita) target
+#####################
+if (BUILD_PSP2)
+    vita_create_self(${CMAKE_PROJECT_NAME}.self ${CMAKE_PROJECT_NAME}.elf)
+    vita_create_vpk(${CMAKE_PROJECT_NAME}.vpk "OPENBOR01" ${CMAKE_PROJECT_NAME}.self
+            VERSION "01.00" NAME "${CMAKE_PROJECT_NAME}")
+endif (BUILD_PSP2)
+
+#####################
+# NX (SWITCH) target
+#####################
+if (BUILD_NX)
+    set_target_properties(${CMAKE_PROJECT_NAME}.elf PROPERTIES LINK_FLAGS "-specs=${DEVKITPRO}/libnx/switch.specs")
+    add_custom_target(${CMAKE_PROJECT_NAME}.nro
+            DEPENDS ${CMAKE_PROJECT_NAME}.elf
+            COMMAND elf2nro ${CMAKE_PROJECT_NAME}.elf ${CMAKE_PROJECT_NAME}.nro)
+endif (BUILD_NX)
