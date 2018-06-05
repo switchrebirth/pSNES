@@ -134,9 +134,9 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     Settings.StopEmulation = FALSE;
 
     // Initialize filters
-    S9xBlitFilterInit();
-    S9xBlit2xSaIFilterInit();
-    S9xBlitHQ2xFilterInit();
+    // S9xBlitFilterInit();
+    // S9xBlit2xSaIFilterInit();
+    // S9xBlitHQ2xFilterInit();
 
     int w, h;
     if (!Settings.SupportHiRes) {
@@ -165,9 +165,9 @@ void PSNESGuiEmu::stop() {
     Memory.SaveSRAM(S9xGetFilename(".srm", SRAM_DIR));
     S9xResetSaveTimer(FALSE);
 
-    S9xBlitFilterDeinit();
-    S9xBlit2xSaIFilterDeinit();
-    S9xBlitHQ2xFilterDeinit();
+    //S9xBlitFilterDeinit();
+    //S9xBlit2xSaIFilterDeinit();
+    //S9xBlitHQ2xFilterDeinit();
 
     S9xUnmapAllControls();
     Memory.Deinit();
@@ -442,7 +442,6 @@ bool8 S9xDeinitUpdate(int width, int height) {
         S9xBlitClearDelta();
         // TODO: update video
         printf("TODO: update video texture size\n");
-
     }
 
     video->unlock();
