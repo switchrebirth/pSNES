@@ -19,7 +19,6 @@ using namespace c2d;
 using namespace c2dui;
 
 static C2DUIGuiMain *_ui;
-static C2DTexture *texture;
 
 static void S9xAudioCallback(void *userdata, Uint8 *stream, int len) {
 
@@ -148,18 +147,9 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
         h = IMAGE_HEIGHT;
     }
 
-    /*
     C2DUIVideo *video = new C2DUIVideo(
-            getUi(), (void **) &GFX.Screen, (int *) &GFX.Pitch,
-            Vector2f(w, h));
+            getUi(), (void **) &GFX.Screen, (int *) &GFX.Pitch, Vector2f(w, h));
     setVideo(video);
-    */
-
-    texture = new C2DTexture(Vector2f(w, h), C2D_TEXTURE_FMT_RGB565);
-    add(texture);
-    GFX.Pitch = (uint32) texture->pitch;
-    texture->lock(nullptr, reinterpret_cast<void **>(&GFX.Screen), nullptr);
-
     //printf("%i x %i | %i\n", w, h, GFX.Pitch);
 
     S9xGraphicsInit();
@@ -436,18 +426,13 @@ bool8 S9xDeinitUpdate(int width, int height) {
     static int prevWidth = 0;
     static int prevHeight = 0;
 
-    //printf("S9xDeinitUpdate\n");
-
     if ((width <= SNES_WIDTH) && ((prevWidth != width) || (prevHeight != height))) {
         S9xBlitClearDelta();
         // TODO: update video
         printf("TODO: update video texture size\n");
     }
 
-    //_ui->getUiEmu()->getVideo()->unlock();
-    //_ui->getRenderer()->flip();
-
-    texture->unlock();
+    _ui->getUiEmu()->getVideo()->unlock();
     _ui->getRenderer()->flip();
 
     prevWidth = width;

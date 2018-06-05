@@ -29,6 +29,7 @@ void PSNESRomList::build() {
     XMLError e = doc.LoadFile(xmlPath);
     if (e != XML_SUCCESS) {
         printf("error: %s\n", tinyxml2::XMLDocument::ErrorIDToName(e));
+        ui->getUiMessageBox()->show("ERROR", "could not load db.xml");
         C2DUIRomList::build();
         return;
     }
@@ -40,6 +41,7 @@ void PSNESRomList::build() {
         pRoot = doc.FirstChildElement("menu");
         if (!pRoot) {
             printf("error: incorrect db.xml format\n");
+            ui->getUiMessageBox()->show("ERROR", "incorrect db.xml format");
             C2DUIRomList::build();
             return;
         }
@@ -48,6 +50,7 @@ void PSNESRomList::build() {
     XMLNode *pGame = pRoot->FirstChildElement("game");
     if (!pGame) {
         printf("error: <game> node not found, incorrect format\n");
+        ui->getUiMessageBox()->show("ERROR", "incorrect db.xml format");
         C2DUIRomList::build();
         return;
     }
