@@ -56,9 +56,9 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
 #ifdef __SWITCH__
     Settings.SoundPlaybackRate = 48000;
 #else
-    Settings.SoundPlaybackRate = 32000;
+    Settings.SoundPlaybackRate = 32040;
 #endif
-    Settings.SoundInputRate = 32000;
+    Settings.SoundInputRate = 32040;
     Settings.SoundSync = TRUE;
     Settings.Transparency = TRUE;
     Settings.AutoDisplayMessages = TRUE;
