@@ -186,6 +186,7 @@ void PSNESGuiEmu::updateFb() {
 
 void PSNESGuiEmu::renderFrame(bool draw, int drawFps, float fps) {
 
+    // TODO
 }
 
 void PSNESGuiEmu::updateFrame() {
@@ -195,7 +196,6 @@ void PSNESGuiEmu::updateFrame() {
 
 int PSNESGuiEmu::update() {
 
-    // TODO
     Input::Player *players = getUi()->getInput()->update();
 
     // process menu
@@ -211,6 +211,19 @@ int PSNESGuiEmu::update() {
         // useful for sdl resize event for example
         getVideo()->updateScaling();
     }
+
+    S9xReportButton(0, (players[0].state & Input::Key::KEY_UP) > 0);
+    S9xReportButton(1, (players[0].state & Input::Key::KEY_DOWN) > 0);
+    S9xReportButton(2, (players[0].state & Input::Key::KEY_LEFT) > 0);
+    S9xReportButton(3, (players[0].state & Input::Key::KEY_RIGHT) > 0);
+    S9xReportButton(4, (players[0].state & Input::Key::KEY_FIRE1) > 0);
+    S9xReportButton(5, (players[0].state & Input::Key::KEY_FIRE2) > 0);
+    S9xReportButton(6, (players[0].state & Input::Key::KEY_FIRE3) > 0);
+    S9xReportButton(7, (players[0].state & Input::Key::KEY_FIRE4) > 0);
+    S9xReportButton(8, (players[0].state & Input::Key::KEY_FIRE5) > 0);
+    S9xReportButton(9, (players[0].state & Input::Key::KEY_FIRE6) > 0);
+    S9xReportButton(10, (players[0].state & Input::Key::KEY_START) > 0);
+    S9xReportButton(11, (players[0].state & Input::Key::KEY_COIN) > 0);
 
     if (!isPaused()) {
         S9xMainLoop();
@@ -423,20 +436,17 @@ bool8 S9xContinueUpdate(int width, int height) {
  */
 bool8 S9xDeinitUpdate(int width, int height) {
 
-    static int prevWidth = 0;
-    static int prevHeight = 0;
+    C2DUIVideo *video = _ui->getUiEmu()->getVideo();
 
-    if ((width <= SNES_WIDTH) && ((prevWidth != width) || (prevHeight != height))) {
+    if ((width <= SNES_WIDTH) && ((video->getSize().x != width) || (video->getSize().y != height))) {
         S9xBlitClearDelta();
         // TODO: update video
         printf("TODO: update video texture size\n");
+
     }
 
-    _ui->getUiEmu()->getVideo()->unlock();
+    video->unlock();
     _ui->getRenderer()->flip();
-
-    prevWidth = width;
-    prevHeight = height;
 
     return TRUE;
 }
