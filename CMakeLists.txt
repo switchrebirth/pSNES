@@ -75,7 +75,7 @@ list(REMOVE_ITEM SNES9X_SRC
         )
 
 set(SNES9X_CFLAGS
-        #-O0 -g
+        -O0 -g
         -fomit-frame-pointer -fno-exceptions
         -pedantic -Wall -W -Wno-unused-parameter
         -DHAVE_LIBPNG -DHAVE_MKSTEMP -DHAVE_STRINGS_H
@@ -155,6 +155,12 @@ target_include_directories(${CMAKE_PROJECT_NAME}.elf PRIVATE ${PSNES_INC} ${SNES
 target_compile_options(${CMAKE_PROJECT_NAME}.elf PRIVATE ${SNES9X_CFLAGS})
 target_compile_options(${CMAKE_PROJECT_NAME}.elf PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-std=c++11 -fpermissive -fno-rtti>)
 target_link_libraries(${CMAKE_PROJECT_NAME}.elf cross2dui ${SNES9X_LDFLAGS})
+
+#####################
+# snes9x database
+#####################
+add_executable(${CMAKE_PROJECT_NAME}_db psnes/psnes_db/psnes_db.cpp psnes/psnes_db/tinyxml2.cpp)
+target_compile_options(${CMAKE_PROJECT_NAME}_db PRIVATE ${SNES9X_CFLAGS})
 
 #####################
 # PSP2 (vita) target

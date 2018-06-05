@@ -4,24 +4,13 @@
 
 #include "c2dui.h"
 #include "romlist.h"
-
-#include "snesdb.h"
+#include "tinyxml2.h"
 
 using namespace c2d;
 using namespace c2dui;
+using namespace tinyxml2;
 
-struct SNESRom {
-
-    const char name[512];
-    const char parent[512];
-
-};
-
-static struct SNESRom SNESDB[SNES_ROMS_COUNT] = {
-
-        {"ROM1", NULL},
-        {"ROM2", "ROM1"}
-};
+static XMLDocument doc;
 
 PSNESRomList::PSNESRomList(C2DUIGuiMain *ui, const std::string &emuVersion) : C2DUIRomList(ui, emuVersion) {
 
@@ -35,29 +24,60 @@ void PSNESRomList::build() {
     char path[MAX_PATH];
     char pathUppercase[MAX_PATH]; // sometimes on FAT32 short files appear as all uppercase
 
-    for (unsigned int i = 0; i < SNES_ROMS_COUNT; i++) {
+    char xmlPath[512];
+    snprintf(xmlPath, 511, "%sdb.xml", ui->getConfig()->getHomePath()->c_str());
+    XMLError e = doc.LoadFile(xmlPath);
+    if (e != XML_SUCCESS) {
+        printf("error: %s\n", tinyxml2::XMLDocument::ErrorIDToName(e));
+        C2DUIRomList::build();
+        return;
+    }
+
+    // try "http://datomatic.no-intro.org/" format
+    XMLNode *pRoot = doc.FirstChildElement("datafile");
+    if (!pRoot) {
+        // try "http://hyperspin-fe.com/" format
+        pRoot = doc.FirstChildElement("menu");
+        if (!pRoot) {
+            printf("error: incorrect db.xml format\n");
+            C2DUIRomList::build();
+            return;
+        }
+    }
+
+    XMLNode *pGame = pRoot->FirstChildElement("game");
+    if (!pGame) {
+        printf("error: <game> node not found, incorrect format\n");
+        C2DUIRomList::build();
+        return;
+    }
+
+    while (pGame) {
 
         auto *rom = new Rom();
 
-        rom->name = (char *) SNESDB[i].name;
-        rom->parent = (char *) SNESDB[i].parent;
+        // get "name"
+        rom->name = rom->drv_name = (char *) pGame->ToElement()->Attribute("name");
+        strncpy(rom->zip, rom->name, 63);
+        // get "cloneof"
+        XMLElement *element = pGame->FirstChildElement("cloneof");
+        if (element && element->GetText()) {
+            rom->parent = (char *) element->GetText();
+        } else {
+            rom->parent = (char *) pGame->ToElement()->Attribute("cloneof");
+        }
+        // get "year"
+        element = pGame->FirstChildElement("year");
+        if (element && element->GetText()) {
+            rom->year = (char *) element->GetText();
+        }
+        // get "manufacturer"
+        element = pGame->FirstChildElement("manufacturer");
+        if (element && element->GetText()) {
+            rom->manufacturer = (char *) element->GetText();
+        }
 
-        /*
-        char *zn;
-        BurnDrvGetZipName(&zn, 0);
-        strncpy(rom->zip, zn, 63);
-        rom->drv = i;
-        rom->drv_name = BurnDrvGetTextA(DRV_NAME);
-        rom->parent = BurnDrvGetTextA(DRV_PARENT);
-        rom->name = BurnDrvGetTextA(DRV_FULLNAME);
-        rom->year = BurnDrvGetTextA(DRV_DATE);
-        rom->manufacturer = BurnDrvGetTextA(DRV_MANUFACTURER);
-        rom->system = BurnDrvGetTextA(DRV_SYSTEM);
-        rom->genre = BurnDrvGetGenreFlags();
-        rom->flags = BurnDrvGetFlags();
         rom->state = RomState::MISSING;
-        rom->hardware = BurnDrvGetHardwareCode();
-        */
 
         // add rom to "ALL" game list
         hardwareList->at(0).supported_count++;
@@ -91,9 +111,6 @@ void PSNESRomList::build() {
             }
 
             if (file != files[j].end()) {
-
-                //snprintf(rom->zip_path, 256, "%s%s", paths[j].c_str(), file->c_str());
-                //rom->state = BurnDrvIsWorking() ? RomState::WORKING : RomState::NOT_WORKING;
                 rom->state = RomState::WORKING;
                 hardwareList->at(0).available_count++;
 
@@ -116,7 +133,7 @@ void PSNESRomList::build() {
         if (rom->state == C2DUIRomList::RomState::NOT_WORKING) {
             rom->color = COL_ORANGE;
         } else if (rom->state == C2DUIRomList::RomState::WORKING) {
-            rom->color = rom->parent == nullptr ? COL_GREEN : COL_YELLOW;
+            rom->color = rom->parent ? COL_YELLOW : COL_GREEN;
         }
 
         if (rom->state == RomState::MISSING) {
@@ -132,12 +149,13 @@ void PSNESRomList::build() {
             }
         }
 
+        printf("add rom: %s\n", rom->name);
         list.push_back(rom);
+        pGame = pGame->NextSibling();
 
         // UI
-        if (i % 250 == 0) {
-            sprintf(text_str, "Scanning... %i%% - ROMS : %i / %i",
-                    (i * 100) / SNES_ROMS_COUNT, hardwareList->at(0).supported_count, SNES_ROMS_COUNT);
+        if (list.size() % 250 == 0) {
+            sprintf(text_str, "Scanning... FOUND : %i", (int) list.size());
             text->setString(text_str);
             ui->getRenderer()->flip();
         }
@@ -146,4 +164,9 @@ void PSNESRomList::build() {
 
     // cleanup
     C2DUIRomList::build();
+}
+
+PSNESRomList::~PSNESRomList() {
+
+    doc.Clear();
 }

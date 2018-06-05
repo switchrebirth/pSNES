@@ -17,7 +17,8 @@ PSNESConfig::PSNESConfig(Renderer *renderer, const std::string &home, int versio
 
     // add default roms paths
     getRomPaths()->clear();
-    for (size_t i = 0; i < C2DUI_ROMS_PATHS_MAX; i++) {
+    getRomPaths()->emplace_back(home + "roms/");
+    for (size_t i = 1; i < C2DUI_ROMS_PATHS_MAX; i++) {
         getRomPaths()->emplace_back("");
     }
 

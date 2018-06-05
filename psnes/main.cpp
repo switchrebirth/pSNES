@@ -117,12 +117,8 @@ int main(int argc, char **argv) {
     // skin
     skin = new C2DUISkin(C2DUI_HOME_PATH, buttons);
 
-    // audio
-    Audio *audio = new C2DAudio(48000);
-    audio->pause(1);
-
     // gui
-    ui = new C2DUIGuiMain(renderer, io, inp, audio, config, skin);
+    ui = new C2DUIGuiMain(renderer, io, inp, nullptr, config, skin);
     std::string snes9x_version = "snes9x";
     snes9x_version += VERSION;
     romList = new PSNESRomList(ui, snes9x_version);
@@ -136,7 +132,6 @@ int main(int argc, char **argv) {
 
     // quit
     delete (ui);
-    delete (audio);
     delete (skin);
     delete (config);
     delete (io);

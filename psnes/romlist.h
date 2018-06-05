@@ -13,6 +13,8 @@ public:
 
     PSNESRomList(c2dui::C2DUIGuiMain *ui, const std::string &emuVersion);
 
+    ~PSNESRomList();
+
     void build() override;
 
     bool isHardware(int hardware, int type) override {
