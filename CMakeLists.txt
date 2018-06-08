@@ -9,12 +9,12 @@ set(PSNES_VERSION_MINOR 0)
 set(BUILD_SFML OFF CACHE BOOL "Build with SFML support")
 set(BUILD_SDL1 OFF CACHE BOOL "Build with SDL1 support (software, osmesa) support")
 set(BUILD_SDL1_GL OFF CACHE BOOL "Build with SDL1 support (hardware rendering, fast, needs BUILD_SDL1=ON)")
-set(BUILD_SDL2 ON CACHE BOOL "Build with SDL2 (software) support")
-set(BUILD_SDL2_GL ON CACHE BOOL "Build with SDL2 support (hardware rendering, fast, needs BUILD_SDL2=ON)")
+set(BUILD_SDL2 OFF CACHE BOOL "Build with SDL2 (software) support")
+set(BUILD_SDL2_GL OFF CACHE BOOL "Build with SDL2 support (hardware rendering, fast, needs BUILD_SDL2=ON)")
 set(BUILD_PSP2 OFF CACHE BOOL "Build with PSP2 support")
 set(BUILD_PS3 OFF CACHE BOOL "Build with PS3 support")
 set(BUILD_3DS OFF CACHE BOOL "Build with 3DS support")
-set(BUILD_NX OFF CACHE BOOL "Build with NX (SWITCH) support")
+set(BUILD_NX ON CACHE BOOL "Build with NX (SWITCH) support")
 set(BUILD_NX_GL OFF CACHE BOOL "Build with NX (SWITCH) support (software, osmesa)")
 
 set(BUILD_PFBA OFF CACHE BOOL "Build with PFBA support")
@@ -35,6 +35,7 @@ endif ()
 
 # add libcross2d/libcross2dui library. If you want to port pfba to another platform,
 # you should (may) only need to port libcross2d library.
+include(libcross2dui/libcross2d/Toolchain.cmake)
 add_subdirectory(libcross2dui)
 
 execute_process(COMMAND "date" "+%Y.%m.%d" OUTPUT_VARIABLE BUILD_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -81,6 +82,7 @@ set(SNES9X_CFLAGS
         -DHAVE_LIBPNG -DHAVE_MKSTEMP -DHAVE_STRINGS_H
         -DHAVE_SYS_IOCTL_H -DHAVE_STDINT_H -DRIGHTSHIFT_IS_SAR
         -DGFX_MULTI_FORMAT
+        -D__PSNES__
         -D__PSNES_VERSION_MAJOR__=${PSNES_VERSION_MAJOR}
         -D__PSNES_VERSION_MINOR__=${PSNES_VERSION_MINOR}
         )
@@ -141,6 +143,7 @@ elseif (BUILD_NX)
     #####################
     # NX PLATORM
     #####################
+    list(APPEND SNES9X_CFLAGS -Wno-pedantic -Wno-missing-field-initializers -Wno-format-truncation)
 elseif (BUILD_SDL2)
     #####################
     # SDL2 PLATORM
@@ -155,12 +158,6 @@ target_include_directories(${CMAKE_PROJECT_NAME}.elf PRIVATE ${PSNES_INC} ${SNES
 target_compile_options(${CMAKE_PROJECT_NAME}.elf PRIVATE ${SNES9X_CFLAGS})
 target_compile_options(${CMAKE_PROJECT_NAME}.elf PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-std=c++11 -fpermissive -fno-rtti>)
 target_link_libraries(${CMAKE_PROJECT_NAME}.elf cross2dui ${SNES9X_LDFLAGS})
-
-#####################
-# snes9x database
-#####################
-add_executable(${CMAKE_PROJECT_NAME}_db psnes/psnes_db/psnes_db.cpp psnes/psnes_db/tinyxml2.cpp)
-target_compile_options(${CMAKE_PROJECT_NAME}_db PRIVATE ${SNES9X_CFLAGS})
 
 #####################
 # PSP2 (vita) target

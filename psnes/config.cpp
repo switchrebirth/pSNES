@@ -70,19 +70,22 @@ PSNESConfig::PSNESConfig(Renderer *renderer, const std::string &home, int versio
             C2DUIOption("ROTATION", {"OFF", "ON", "FLIP", "CAB MODE"}, 0, C2DUIOption::Index::ROM_ROTATION));
 #else
     getOptions()->emplace_back(
-            C2DUIOption("ROTATION", {"OFF", "ON", "FLIP"}, 0, C2DUIOption::Index::ROM_ROTATION));
+            C2DUIOption("ROTATION", {"OFF", "ON", "FLIP"}, 0, C2DUIOption::Index::ROM_ROTATION,
+                        C2DUIOption::Type::HIDDEN));
 #endif
-    getOptions()->emplace_back(C2DUIOption("SHOW_FPS", {"OFF", "ON"}, 0, C2DUIOption::Index::ROM_SHOW_FPS));
+    getOptions()->emplace_back(
+            C2DUIOption("SHOW_FPS", {"OFF", "ON"}, 0, C2DUIOption::Index::ROM_SHOW_FPS, C2DUIOption::Type::HIDDEN));
     getOptions()->emplace_back(C2DUIOption("FRAMESKIP", {"OFF", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
-                                           0, C2DUIOption::Index::ROM_FRAMESKIP, C2DUIOption::Type::INTEGER));
+                                           0, C2DUIOption::Index::ROM_FRAMESKIP, C2DUIOption::Type::HIDDEN));
     //getOptions()->emplace_back(C2DUIOption("M68K", {"ASM", "C"}, 0, C2DUIOption::Index::ROM_M68K));
     getOptions()->emplace_back(
             C2DUIOption("NEOBIOS", {"UNIBIOS_3_2", "AES_ASIA", "AES_JPN", "DEVKIT", "MVS_ASIA_EUR_V6S1",
                                     "MVS_ASIA_EUR_V5S1", "MVS_ASIA_EUR_V3S4", "MVS_USA_V5S2",
                                     "MVS_USA_V5S4", "MVS_USA_V5S6", "MVS_JPN_V6", "MVS_JPN_V5",
                                     "MVS_JPN_V3S4", "NEO_MVH_MV1C", "MVS_JPN_J3", "DECK_V6"},
-                        0, C2DUIOption::Index::ROM_NEOBIOS));
-    getOptions()->emplace_back(C2DUIOption("AUDIO", {"OFF", "ON"}, 1, C2DUIOption::Index::ROM_AUDIO));
+                        0, C2DUIOption::Index::ROM_NEOBIOS, C2DUIOption::Type::HIDDEN));
+    getOptions()->emplace_back(
+            C2DUIOption("AUDIO", {"OFF", "ON"}, 1, C2DUIOption::Index::ROM_AUDIO, C2DUIOption::Type::HIDDEN));
 
     // joystick
     getOptions()->emplace_back(

@@ -11,6 +11,7 @@
 #include <display.h>
 #include <sys/stat.h>
 #include <snapshot.h>
+#include <cheats.h>
 
 #include "c2dui.h"
 #include "uiEmu.h"
@@ -19,6 +20,29 @@ using namespace c2d;
 using namespace c2dui;
 
 static C2DUIGuiMain *_ui;
+
+static const char *s9x_base_dir = nullptr;
+
+static char default_dir[PATH_MAX + 1];
+
+static const char dirNames[13][32] =
+        {
+                "",             // DEFAULT_DIR
+                "",             // HOME_DIR
+                "",             // ROMFILENAME_DIR
+                "roms",          // ROM_DIR
+                "sram",         // SRAM_DIR
+                "saves",        // SNAPSHOT_DIR
+                "screenshot",   // SCREENSHOT_DIR
+                "spc",          // SPC_DIR
+                "cheat",        // CHEAT_DIR
+                "patch",        // PATCH_DIR
+                "bios",         // BIOS_DIR
+                "log",          // LOG_DIR
+                ""
+        };
+
+static int make_snes9x_dirs(void);
 
 static void S9xAudioCallback(void *userdata, Uint8 *stream, int len) {
 
@@ -43,6 +67,9 @@ PSNESGuiEmu::PSNESGuiEmu(C2DUIGuiMain *ui) : C2DUIGuiEmu(ui) {
 }
 
 int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
+
+    strncpy(default_dir, getUi()->getConfig()->getHomePath()->c_str(), PATH_MAX);
+    s9x_base_dir = default_dir;
 
     memset(&Settings, 0, sizeof(Settings));
     Settings.MouseMaster = FALSE;
@@ -79,21 +106,18 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
 
     CPU.Flags = 0;
 
-    //S9xLoadConfigFiles(argv, argc);
+    make_snes9x_dirs();
 
-    if (!Memory.Init()) {
-        fprintf(stderr, "Could not initialize Snes9x Memory.\n");
-        exit(1);
-    }
-
-    if (!S9xInitAPU()) {
-        fprintf(stderr, "Could not initialize Snes9x APU.\n");
-        exit(1);
+    if (!Memory.Init() || !S9xInitAPU()) {
+        printf("Could not initialize Snes9x Memory.\n");
+        stop();
+        return -1;
     }
 
     if (!S9xInitSound(100, 0)) {
-        fprintf(stderr, "Could not initialize Snes9x Sound.\n");
-        exit(1);
+        printf("Could not initialize Snes9x Sound.\n");
+        stop();
+        return -1;
     }
 
     // TODO
@@ -123,12 +147,23 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     char file[512];
     snprintf(file, 512, "%s%s.zip", getUi()->getConfig()->getRomPath(0), rom->zip);
     if (!Memory.LoadROM(file)) {
-        fprintf(stderr, "Could not open ROM: %s\n", file);
-        exit(1);
+        printf("Could not open ROM: %s\n", file);
+        stop();
+        return -1;
     }
 
-    //Memory.LoadSRAM(S9xGetFilename(".srm", SRAM_DIR));
-    //S9xLoadCheatFile(S9xGetFilename(".cht", CHEAT_DIR));
+    //S9xDeleteCheats();
+    //S9xCheatsEnable();
+
+    Memory.LoadSRAM(S9xGetFilename(".srm", SRAM_DIR));
+    // TODO
+    /*
+    if (Settings.ApplyCheats) {
+        if (!S9xLoadCheatFile(S9xGetFilename(".bml", CHEAT_DIR)))
+            S9xLoadCheatFile(S9xGetFilename(".cht", CHEAT_DIR));
+    }
+    //S9xParseArgsForCheats(argv, argc);
+    */
 
     CPU.Flags = saved_flags;
     Settings.StopEmulation = FALSE;
@@ -141,7 +176,7 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     int w, h;
     if (!Settings.SupportHiRes) {
         w = SNES_WIDTH;
-        h = SNES_HEIGHT;
+        h = SNES_HEIGHT_EXTENDED;
     } else {
         w = IMAGE_WIDTH;
         h = IMAGE_HEIGHT;
@@ -150,6 +185,7 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     C2DUIVideo *video = new C2DUIVideo(
             getUi(), (void **) &GFX.Screen, (int *) &GFX.Pitch, Vector2f(w, h));
     setVideo(video);
+
     //printf("%i x %i | %i\n", w, h, GFX.Pitch);
 
     S9xGraphicsInit();
@@ -160,41 +196,35 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
 
 void PSNESGuiEmu::stop() {
 
+    S9xSetSoundMute(TRUE);
     Settings.StopEmulation = TRUE;
 
     Memory.SaveSRAM(S9xGetFilename(".srm", SRAM_DIR));
     S9xResetSaveTimer(FALSE);
+    //S9xSaveCheatFile(S9xGetFilename(".bml", CHEAT_DIR));
 
     //S9xBlitFilterDeinit();
     //S9xBlit2xSaIFilterDeinit();
     //S9xBlitHQ2xFilterDeinit();
 
     S9xUnmapAllControls();
+    S9xGraphicsDeinit();
     Memory.Deinit();
     S9xDeinitAPU();
-    S9xGraphicsDeinit();
 
     C2DUIGuiEmu::stop();
 
     delete (getUi()->getAudio());
 }
 
-void PSNESGuiEmu::updateFb() {
-
-    // TODO
-}
-
-void PSNESGuiEmu::renderFrame(bool draw, int drawFps, float fps) {
-
-    // TODO
-}
-
-void PSNESGuiEmu::updateFrame() {
-
-    // TODO
-}
-
 int PSNESGuiEmu::update() {
+
+    if (!isPaused()) {
+        S9xMainLoop();
+        S9xSetSoundMute(FALSE);
+    } else {
+        S9xSetSoundMute(TRUE);
+    }
 
     Input::Player *players = getUi()->getInput()->update();
 
@@ -225,19 +255,58 @@ int PSNESGuiEmu::update() {
     S9xReportButton(10, (players[0].state & Input::Key::KEY_START) > 0);
     S9xReportButton(11, (players[0].state & Input::Key::KEY_COIN) > 0);
 
-    if (!isPaused()) {
-        S9xMainLoop();
-        S9xSetSoundMute(FALSE);
-    } else {
-        S9xSetSoundMute(TRUE);
-    }
-
     return 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Functions called by Snes9x below
 ///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Called just before Snes9x begins to render an SNES screen.
+ * Use this function if you should prepare before drawing, otherwise let it empty.
+ */
+bool8 S9xInitUpdate() {
+
+    C2DUIVideo *video = _ui->getUiEmu()->getVideo();
+    video->lock(nullptr, (void **) &GFX.Screen, nullptr);
+    return TRUE;
+}
+
+/**
+ * Called once a complete SNES screen has been rendered into the GFX.Screen memory buffer,
+ * now is your chance to copy the SNES rendered screen to the host computer's screen memory.
+ * The problem is that you have to cope with different sized SNES rendered screens:
+ * 256*224, 256*239, 512*224, 512*239, 512*448 and 512*478.
+ */
+bool8 S9xDeinitUpdate(int width, int height) {
+
+    C2DUIVideo *video = _ui->getUiEmu()->getVideo();
+
+    // TODO
+    /*
+    if ((width <= SNES_WIDTH) && ((video->getSize().x != width) || (video->getSize().y != height))) {
+        printf("TODO: S9xDeinitUpdate(%i x %i)\n", width, height);
+        S9xBlitClearDelta();
+    }
+    */
+
+    video->unlock();
+#ifdef __SWITCH__
+    _ui->getRenderer()->flip(false);
+#else
+    _ui->getRenderer()->flip();
+#endif
+
+    return TRUE;
+}
+
+/**
+ * Called at the end of screen refresh if GFX.DoInterlace && GFX.InterlaceFrame == 0 is true (?).
+ */
+bool8 S9xContinueUpdate(int width, int height) {
+    return TRUE;
+}
 
 void _splitpath(const char *path, char *drive, char *dir, char *fname, char *ext) {
 
@@ -311,12 +380,65 @@ void S9xParseArg(char **argv, int &i, int argc) {
 void S9xParsePortConfig(ConfigFile &conf, int pass) {
 }
 
+static int make_snes9x_dirs() {
+
+    if (strlen(s9x_base_dir) + 1 + sizeof(dirNames[0]) > PATH_MAX + 1)
+        return (-1);
+
+    mkdir(s9x_base_dir, 0755);
+
+    for (int i = 0; i < LAST_DIR; i++) {
+        if (dirNames[i][0]) {
+            char s[PATH_MAX + 1];
+            snprintf(s, PATH_MAX + 1, "%s%s%s", s9x_base_dir, SLASH_STR, dirNames[i]);
+            mkdir(s, 0755);
+        }
+    }
+
+    return (0);
+}
+
 /**
  * Called when Snes9x wants to know the directory dirtype.
  */
 const char *S9xGetDirectory(s9x_getdirtype dirtype) {
-    static const char *s = ".";
-    return s;
+
+    static char s[PATH_MAX + 1];
+
+    if (dirNames[dirtype][0])
+        snprintf(s, PATH_MAX + 1, "%s%s%s", s9x_base_dir, SLASH_STR, dirNames[dirtype]);
+    else {
+        switch (dirtype) {
+
+            case DEFAULT_DIR:
+                strncpy(s, s9x_base_dir, PATH_MAX + 1);
+                s[PATH_MAX] = 0;
+                break;
+
+            case HOME_DIR:
+                strncpy(s, s9x_base_dir, PATH_MAX + 1);
+                s[PATH_MAX] = 0;
+                break;
+
+            case ROMFILENAME_DIR:
+                strncpy(s, Memory.ROMFilename, PATH_MAX + 1);
+                s[PATH_MAX] = 0;
+
+                for (int i = (int) strlen(s); i >= 0; i--) {
+                    if (s[i] == SLASH_CHAR) {
+                        s[i] = 0;
+                        break;
+                    }
+                }
+                break;
+
+            default:
+                s[0] = 0;
+                break;
+        }
+    }
+
+    return (s);
 }
 
 /**
@@ -327,16 +449,12 @@ const char *S9xGetDirectory(s9x_getdirtype dirtype) {
 const char *S9xGetFilename(const char *ex, s9x_getdirtype dirtype) {
 
     static char s[PATH_MAX + 1];
-
-    char drive[_MAX_DRIVE + 1];
-    char dir[_MAX_DIR + 1];
-    char fname[_MAX_FNAME + 1];
-    char ext[_MAX_EXT + 1];
+    char drive[_MAX_DRIVE + 1], dir[_MAX_DIR + 1], fname[_MAX_FNAME + 1], ext[_MAX_EXT + 1];
 
     _splitpath(Memory.ROMFilename, drive, dir, fname, ext);
     snprintf(s, PATH_MAX + 1, "%s%s%s%s", S9xGetDirectory(dirtype), SLASH_STR, fname, ex);
 
-    return s;
+    return (s);
 }
 
 /**
@@ -347,15 +465,11 @@ const char *S9xGetFilename(const char *ex, s9x_getdirtype dirtype) {
 const char *S9xGetFilenameInc(const char *ex, s9x_getdirtype dirtype) {
 
     static char s[PATH_MAX + 1];
-
-    char drive[_MAX_DRIVE + 1];
-    char dir[_MAX_DIR + 1];
-    char fname[_MAX_FNAME + 1];
-    char ext[_MAX_EXT + 1];
+    char drive[_MAX_DRIVE + 1], dir[_MAX_DIR + 1], fname[_MAX_FNAME + 1], ext[_MAX_EXT + 1];
 
     unsigned int i = 0;
     const char *d;
-    struct stat buf{};
+    struct stat buf = {};
 
     _splitpath(Memory.ROMFilename, drive, dir, fname, ext);
     d = S9xGetDirectory(dirtype);
@@ -364,7 +478,8 @@ const char *S9xGetFilenameInc(const char *ex, s9x_getdirtype dirtype) {
         snprintf(s, PATH_MAX + 1, "%s%s%s.%03d%s", d, SLASH_STR, fname, i++, ex);
     while (stat(s, &buf) == 0 && i < 1000);
 
-    return s;
+    return (s);
+
 }
 
 /**
@@ -375,10 +490,10 @@ const char *S9xBasename(const char *f) {
 
     const char *p;
 
-    if ((p = strrchr(f, '/')) != nullptr || (p = strrchr(f, '\\')) != nullptr)
-        return p + 1;
+    if ((p = strrchr(f, '/')) != NULL || (p = strrchr(f, '\\')) != NULL)
+        return (p + 1);
 
-    return f;
+    return (f);
 }
 
 /**
@@ -404,50 +519,22 @@ const char *S9xChooseMovieFilename(bool8 read_only) {
  * Open the file filepath and return its pointer file.
  */
 bool8 S9xOpenSnapshotFile(const char *filename, bool8 read_only, STREAM*file) {
-    return FALSE;
+
+    if ((*file = OPEN_STREAM(filename, read_only ? "rb" : "wb")))
+        return (TRUE);
+
+    printf("S9xOpenSnapshotFile: %s (open failed, read only=%i)\n", filename, read_only);
+
+    return (FALSE);
 }
 
 /**
  * This function closes the freeze-game file opened by S9xOpenSnapshotFile function.
  */
 void S9xCloseSnapshotFile(STREAM file) {
-}
 
-/**
- * Called just before Snes9x begins to render an SNES screen.
- * Use this function if you should prepare before drawing, otherwise let it empty.
- */
-bool8 S9xInitUpdate() {
-    return TRUE;
-}
-
-/**
- * Called at the end of screen refresh if GFX.DoInterlace && GFX.InterlaceFrame == 0 is true (?).
- */
-bool8 S9xContinueUpdate(int width, int height) {
-    return TRUE;
-}
-
-/**
- * Called once a complete SNES screen has been rendered into the GFX.Screen memory buffer,
- * now is your chance to copy the SNES rendered screen to the host computer's screen memory.
- * The problem is that you have to cope with different sized SNES rendered screens:
- * 256*224, 256*239, 512*224, 512*239, 512*448 and 512*478.
- */
-bool8 S9xDeinitUpdate(int width, int height) {
-
-    C2DUIVideo *video = _ui->getUiEmu()->getVideo();
-
-    if ((width <= SNES_WIDTH) && ((video->getSize().x != width) || (video->getSize().y != height))) {
-        S9xBlitClearDelta();
-        // TODO: update video
-        printf("TODO: update video texture size\n");
-    }
-
-    video->unlock();
-    _ui->getRenderer()->flip();
-
-    return TRUE;
+    printf("S9xCloseSnapshotFile\n");
+    CLOSE_STREAM(file);
 }
 
 /**
@@ -471,6 +558,7 @@ void S9xToggleSoundChannel(int c) {
  * the S-RAM has been changed. Typically, call Memory.SaveSRAM function from this function.
  */
 void S9xAutoSaveSRAM() {
+
     Memory.SaveSRAM(S9xGetFilename(".srm", SRAM_DIR));
 }
 
@@ -612,7 +700,6 @@ bool8 S9xOpenSoundDevice(void) {
  * Called when some fatal error situation arises or when the “q” debugger command is used.
  */
 void S9xExit() {
-    //exit(0);
     _ui->getUiEmu()->stop();
 }
 

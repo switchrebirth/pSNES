@@ -18,12 +18,6 @@ public:
     void stop();
 
     int update();
-
-    void updateFb();
-
-    void updateFrame();
-
-    void renderFrame(bool draw = true, int drawFps = false, float fps = 0);
 };
 
 #endif //PSNES_UIEMU_H

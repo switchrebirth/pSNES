@@ -152,7 +152,7 @@ void PSNESRomList::build() {
             }
         }
 
-        printf("add rom: %s\n", rom->name);
+        //printf("add rom: %s\n", rom->name);
         list.push_back(rom);
         pGame = pGame->NextSibling();
 

@@ -63,6 +63,21 @@ C2DUISkin *skin;
 C2DUIGuiRomList *uiRomList;
 C2DUIGuiState *uiState;
 
+#ifdef __SWITCH__
+
+char *strdup(const char *str) {
+    size_t siz;
+    char *copy;
+
+    siz = strlen(str) + 1;
+    if ((copy = (char *) malloc(siz)) == NULL)
+        return (NULL);
+    memcpy(copy, str, siz);
+    return (copy);
+}
+
+#endif
+
 int main(int argc, char **argv) {
 
     // buttons used for ui config menu
@@ -113,13 +128,15 @@ int main(int argc, char **argv) {
     // load configuration
     int psnes_version = (__PSNES_VERSION_MAJOR__ * 100) + __PSNES_VERSION_MINOR__;
     config = new PSNESConfig(renderer, C2DUI_HOME_PATH, psnes_version);
+    std::string configs_path = *config->getHomePath() + "configs";
+    mkdir(configs_path.c_str(), 0755);
 
     // skin
     skin = new C2DUISkin(C2DUI_HOME_PATH, buttons);
 
     // gui
     ui = new C2DUIGuiMain(renderer, io, inp, nullptr, config, skin);
-    std::string snes9x_version = "snes9x";
+    std::string snes9x_version = "snes9x ";
     snes9x_version += VERSION;
     romList = new PSNESRomList(ui, snes9x_version);
     romList->build();
