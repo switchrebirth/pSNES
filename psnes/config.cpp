@@ -57,7 +57,7 @@ PSNESConfig::PSNESConfig(Renderer *renderer, const std::string &home, int versio
                         3, C2DUIOption::Index::ROM_SCALING));
 #ifdef __NX__
     getOptions()->emplace_back(
-            C2DUIOption("FILTER", {"POINT", "LINEAR"}, 1, C2DUIOption::Index::ROM_FILTER));
+            C2DUIOption("FILTER", {"POINT", "LINEAR"}, 1, C2DUIOption::Index::ROM_FILTER, C2DUIOption::Type::HIDDEN));
 #else
     getOptions()->emplace_back(
             C2DUIOption("FILTER", {"POINT", "LINEAR"}, 0, C2DUIOption::Index::ROM_FILTER));
