@@ -268,8 +268,9 @@ int PSNESGuiEmu::update() {
  */
 bool8 S9xInitUpdate() {
 
-    C2DUIVideo *video = _ui->getUiEmu()->getVideo();
-    video->lock(nullptr, (void **) &GFX.Screen, nullptr);
+    //C2DUIVideo *video = _ui->getUiEmu()->getVideo();
+    //video->lock(nullptr, (void **) &GFX.Screen, nullptr);
+
     return TRUE;
 }
 
@@ -284,12 +285,10 @@ bool8 S9xDeinitUpdate(int width, int height) {
     C2DUIVideo *video = _ui->getUiEmu()->getVideo();
 
     // TODO
-    /*
     if ((width <= SNES_WIDTH) && ((video->getSize().x != width) || (video->getSize().y != height))) {
-        printf("TODO: S9xDeinitUpdate(%i x %i)\n", width, height);
-        S9xBlitClearDelta();
+        //printf("TODO: S9xDeinitUpdate(%i x %i)\n", width, height);
+        //S9xBlitClearDelta();
     }
-    */
 
     video->unlock();
 #ifdef __SWITCH__

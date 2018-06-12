@@ -55,7 +55,7 @@ void PSNESRomList::build() {
         return;
     }
 
-    while (pGame) {
+    while (pGame != nullptr) {
 
         auto *rom = new Rom();
 
@@ -64,14 +64,14 @@ void PSNESRomList::build() {
         strncpy(rom->zip, rom->name, 63);
         // get "cloneof"
         XMLElement *element = pGame->FirstChildElement("cloneof");
-        if (element && element->GetText()) {
+        if (element != nullptr && element->GetText()) {
             rom->parent = (char *) element->GetText();
         } else {
             rom->parent = (char *) pGame->ToElement()->Attribute("cloneof");
         }
         // get "year"
         element = pGame->FirstChildElement("year");
-        if (element && element->GetText()) {
+        if (element != nullptr && element->GetText()) {
             rom->year = (char *) element->GetText();
         }
         // get "manufacturer"
@@ -88,17 +88,8 @@ void PSNESRomList::build() {
             hardwareList->at(0).clone_count++;
         }
 
-        // add rom to specific hardware
-        Hardware *hardware = getHardware(rom->hardware);
-        if (hardware) {
-            hardware->supported_count++;
-            if (rom->parent) {
-                hardware->clone_count++;
-            }
-        }
-
-        snprintf(path, MAX_PATH, "%s.zip", rom->zip);
-        for (int k = 0; k < MAX_PATH; k++) {
+        snprintf(path, 511, "%s.zip", rom->zip);
+        for (int k = 0; k < (int) strlen(path); k++) {
             pathUppercase[k] = (char) toupper(path[k]);
         }
 
@@ -114,18 +105,11 @@ void PSNESRomList::build() {
             }
 
             if (file != files[j].end()) {
+                printf("found: %s\n", path);
                 rom->state = RomState::WORKING;
                 hardwareList->at(0).available_count++;
-
                 if (rom->parent) {
                     hardwareList->at(0).available_clone_count++;
-                }
-
-                if (hardware) {
-                    hardware->available_count++;
-                    if (rom->parent) {
-                        hardware->available_clone_count++;
-                    }
                 }
                 break;
             }
@@ -141,14 +125,8 @@ void PSNESRomList::build() {
 
         if (rom->state == RomState::MISSING) {
             hardwareList->at(0).missing_count++;
-            if (hardware) {
-                hardware->missing_count++;
-            }
             if (rom->parent) {
                 hardwareList->at(0).missing_clone_count++;
-                if (hardware) {
-                    hardware->missing_clone_count++;
-                }
             }
         }
 
@@ -158,7 +136,8 @@ void PSNESRomList::build() {
 
         // UI
         if (list.size() % 250 == 0) {
-            sprintf(text_str, "Scanning... FOUND : %i", (int) list.size());
+            snprintf(text_str, 511, "Scanning... %i / %i",
+                     hardwareList->at(0).available_count, (int) list.size());
             text->setString(text_str);
             ui->getRenderer()->flip();
         }

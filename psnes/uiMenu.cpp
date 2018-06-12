@@ -10,6 +10,7 @@ using namespace c2dui;
 
 PSNESGuiMenu::PSNESGuiMenu(c2dui::C2DUIGuiMain *ui) : C2DUIGuiMenu(ui) {
 
+    printf("PSNESGuiMenu()\n");
 }
 
 bool PSNESGuiMenu::isOptionHidden(c2dui::C2DUIOption *option) {

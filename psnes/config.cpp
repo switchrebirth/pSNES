@@ -29,16 +29,17 @@ PSNESConfig::PSNESConfig(Renderer *renderer, const std::string &home, int versio
         hardware_names.emplace_back(i.name);
     }
 
-    // TODO: change this crap
     ////////////////////////////////////////////////////////////
     // options needs to be in sync/order with "C2DUIOption::Index"
+    // TODO: change this requirement
     ////////////////////////////////////////////////////////////
     // main/gui config
     getOptions()->emplace_back(
             C2DUIOption("MAIN", {"MAIN"}, 0, C2DUIOption::Index::MENU_MAIN, C2DUIOption::Type::MENU));
     getOptions()->emplace_back(C2DUIOption("SHOW_ALL", {"WORKING", "ALL"}, 1, C2DUIOption::Index::GUI_SHOW_ALL));
     getOptions()->emplace_back(C2DUIOption("SHOW_CLONES", {"OFF", "ON"}, 0, C2DUIOption::Index::GUI_SHOW_CLONES));
-    getOptions()->emplace_back(C2DUIOption("SHOW_HARDWARE", hardware_names, 0, C2DUIOption::Index::GUI_SHOW_HARDWARE));
+    getOptions()->emplace_back(C2DUIOption("SHOW_HARDWARE", hardware_names, 0, C2DUIOption::Index::GUI_SHOW_HARDWARE,
+                                           C2DUIOption::Type::HIDDEN));
     getOptions()->emplace_back(
             C2DUIOption("FULLSCREEN", {"OFF", "ON"}, 1, C2DUIOption::Index::GUI_FULLSCREEN, C2DUIOption::Type::HIDDEN));
 
