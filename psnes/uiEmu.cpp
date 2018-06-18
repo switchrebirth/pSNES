@@ -176,7 +176,7 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     int w, h;
     if (!Settings.SupportHiRes) {
         w = SNES_WIDTH;
-        h = SNES_HEIGHT_EXTENDED;
+        h = SNES_HEIGHT;
     } else {
         w = IMAGE_WIDTH;
         h = IMAGE_HEIGHT;
@@ -186,7 +186,10 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
             getUi(), (void **) &GFX.Screen, (int *) &GFX.Pitch, Vector2f(w, h));
     setVideo(video);
 
-    //printf("%i x %i | %i\n", w, h, GFX.Pitch);
+    // TODO: crappy hack, snes9x want a "SNES_HEIGHT_EXTENDED" buffer
+    free(video->pixels);
+    video->pixels = (unsigned char *) malloc((size_t) (SNES_WIDTH * SNES_HEIGHT_EXTENDED * 2));
+    video->lock(nullptr, (void **) &GFX.Screen, nullptr);
 
     S9xGraphicsInit();
     S9xSetSoundMute(FALSE);
