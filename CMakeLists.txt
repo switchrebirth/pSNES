@@ -71,6 +71,10 @@ list(REMOVE_ITEM SNES9X_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/spc7110emu.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/srtcemu.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/xbrz.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/hq2x.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/2xsai.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/epx.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/snes_ntsc.c
         ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/apu/bapu/smp/algorithms.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/apu/bapu/smp/core.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/apu/bapu/smp/memory.cpp
@@ -78,7 +82,6 @@ list(REMOVE_ITEM SNES9X_SRC
         )
 
 set(SNES9X_CFLAGS
-        -O0 -g
         -fomit-frame-pointer -fno-exceptions
         -pedantic -Wall -W -Wno-unused-parameter
         -DHAVE_LIBPNG -DHAVE_MKSTEMP -DHAVE_STRINGS_H
@@ -88,6 +91,10 @@ set(SNES9X_CFLAGS
         -D__PSNES_VERSION_MAJOR__=${PSNES_VERSION_MAJOR}
         -D__PSNES_VERSION_MINOR__=${PSNES_VERSION_MINOR}
         )
+
+if (BUILD_DEBUG)
+    list(APPEND SNES9X_CFLAGS -O0 -g)
+endif (BUILD_DEBUG)
 
 set(SNES9X_LDFLAGS m z png)
 
@@ -111,17 +118,9 @@ if (BUILD_GZIP)
     list(APPEND SNES9X_CFLAGS -DZLIB)
 endif (BUILD_GZIP)
 if (BUILD_ZIP)
-    set(UNZIP_INC psnes/minizip)
-    file(GLOB UNZIP_SRC psnes/minizip/*.c*)
-    list(REMOVE_ITEM UNZIP_SRC
-            ${CMAKE_CURRENT_SOURCE_DIR}/psnes/minizip/iowin32.c
-            ${CMAKE_CURRENT_SOURCE_DIR}/psnes/minizip/minizip.c
-            ${CMAKE_CURRENT_SOURCE_DIR}/psnes/minizip/miniunz.c
-            ${CMAKE_CURRENT_SOURCE_DIR}/psnes/minizip/mztools.c
-            ${CMAKE_CURRENT_SOURCE_DIR}/psnes/minizip/zip.c
-            )
-    list(APPEND SNES9X_CFLAGS -DUNZIP_SUPPORT -DSYSTEM_ZIP -DUSE_FILE32API)
-    #-DIOAPI_NO_64
+    set(UNZIP_INC snes9x/unzip)
+    set(UNZIP_SRC snes9x/unzip/ioapi.c snes9x/unzip/unzip.c)
+    list(APPEND SNES9X_CFLAGS -DUNZIP_SUPPORT)
 endif (BUILD_ZIP)
 if (BUILD_JMA)
     set(JMA_INC snes9x/jma)
