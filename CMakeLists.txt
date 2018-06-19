@@ -10,7 +10,7 @@ set(BUILD_SFML OFF CACHE BOOL "Build with SFML support")
 set(BUILD_SDL1 OFF CACHE BOOL "Build with SDL1 support (software, osmesa) support")
 set(BUILD_SDL1_GL OFF CACHE BOOL "Build with SDL1 support (hardware rendering, fast, needs BUILD_SDL1=ON)")
 set(BUILD_SDL2 OFF CACHE BOOL "Build with SDL2 (software) support")
-set(BUILD_SDL2_GL OFF CACHE BOOL "Build with SDL2 support (hardware rendering, fast, needs BUILD_SDL2=ON)")
+set(BUILD_SDL2_GL ON CACHE BOOL "Build with SDL2 support (hardware rendering, fast, needs BUILD_SDL2=ON)")
 set(BUILD_PSP2 OFF CACHE BOOL "Build with PSP2 support")
 set(BUILD_PS3 OFF CACHE BOOL "Build with PS3 support")
 set(BUILD_3DS OFF CACHE BOOL "Build with 3DS support")
@@ -111,14 +111,17 @@ if (BUILD_GZIP)
     list(APPEND SNES9X_CFLAGS -DZLIB)
 endif (BUILD_GZIP)
 if (BUILD_ZIP)
-    set(UNZIP_INC snes9x/unzip)
-    file(GLOB UNZIP_SRC snes9x/unzip/*.c*)
+    set(UNZIP_INC psnes/minizip)
+    file(GLOB UNZIP_SRC psnes/minizip/*.c*)
     list(REMOVE_ITEM UNZIP_SRC
-            ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/unzip/iowin32.c
-            ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/unzip/minizip.c
-            ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/unzip/miniunz.c
+            ${CMAKE_CURRENT_SOURCE_DIR}/psnes/minizip/iowin32.c
+            ${CMAKE_CURRENT_SOURCE_DIR}/psnes/minizip/minizip.c
+            ${CMAKE_CURRENT_SOURCE_DIR}/psnes/minizip/miniunz.c
+            ${CMAKE_CURRENT_SOURCE_DIR}/psnes/minizip/mztools.c
+            ${CMAKE_CURRENT_SOURCE_DIR}/psnes/minizip/zip.c
             )
-    list(APPEND SNES9X_CFLAGS -DUNZIP_SUPPORT)
+    list(APPEND SNES9X_CFLAGS -DUNZIP_SUPPORT -DSYSTEM_ZIP -DUSE_FILE32API)
+    #-DIOAPI_NO_64
 endif (BUILD_ZIP)
 if (BUILD_JMA)
     set(JMA_INC snes9x/jma)

@@ -44,6 +44,8 @@ static const char dirNames[13][32] =
 
 static int make_snes9x_dirs(void);
 
+#ifndef NOSOUND
+
 static void S9xAudioCallback(void *userdata, Uint8 *stream, int len) {
 
     //printf("S9xAudioCallback\n");
@@ -52,13 +54,23 @@ static void S9xAudioCallback(void *userdata, Uint8 *stream, int len) {
     _ui->getAudio()->unlock();
 }
 
+#else
+static uint8 dummy_audio_buffer[128];
+#endif
+
 static void S9xSamplesAvailable(void *data) {
 
     //printf("S9xSamplesAvailable\n");
+#ifdef NOSOUND
+    S9xMixSamples(dummy_audio_buffer, 128);
+    S9xFinalizeSamples();
+#else
     _ui->getAudio()->lock();
     S9xFinalizeSamples();
     _ui->getAudio()->unlock();
+#endif
 }
+//#endif
 
 PSNESGuiEmu::PSNESGuiEmu(C2DUIGuiMain *ui) : C2DUIGuiEmu(ui) {
 
@@ -146,9 +158,10 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     char file[512];
     snprintf(file, 511, "%s%s.zip", getUi()->getConfig()->getRomPath(0), rom->zip);
     if (!Memory.LoadROM(file)) {
-        printf("Could not open ROM: %s\n, trying without adding zip extension...\n", file);
+        printf("Could not open ROM: %s, trying without adding zip extension...\n", file);
         snprintf(file, 511, "%s%s", getUi()->getConfig()->getRomPath(0), rom->zip);
         if (!Memory.LoadROM(file)) {
+            printf("Could not open ROM: %s\n", file);
             stop();
             return -1;
         }
@@ -171,7 +184,7 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     Settings.StopEmulation = FALSE;
 
     // Initialize filters
-    S9xBlitFilterInit();
+    // S9xBlitFilterInit();
     // S9xBlit2xSaIFilterInit();
     // S9xBlitHQ2xFilterInit();
 
@@ -208,10 +221,10 @@ void PSNESGuiEmu::stop() {
     Settings.StopEmulation = TRUE;
 
     Memory.SaveSRAM(S9xGetFilename(".srm", SRAM_DIR));
-    S9xResetSaveTimer(FALSE);
+    //S9xResetSaveTimer(FALSE);
     //S9xSaveCheatFile(S9xGetFilename(".bml", CHEAT_DIR));
 
-    S9xBlitFilterDeinit();
+    //S9xBlitFilterDeinit();
     //S9xBlit2xSaIFilterDeinit();
     //S9xBlitHQ2xFilterDeinit();
 
@@ -222,7 +235,9 @@ void PSNESGuiEmu::stop() {
 
     C2DUIGuiEmu::stop();
 
-    delete (getUi()->getAudio());
+#ifndef NOSOUND
+    getUi()->removeAudio();
+#endif
 }
 
 int PSNESGuiEmu::update() {
@@ -575,7 +590,7 @@ void S9xAutoSaveSRAM() {
  */
 void S9xSyncSpeed() {
 
-#ifndef NOSOUND
+//#ifndef NOSOUND
     if (Settings.SoundSync) {
         while (!S9xSyncSound()) {
 #ifdef __SWITCH__
@@ -585,7 +600,7 @@ void S9xSyncSpeed() {
 #endif
         }
     }
-#endif
+//#endif
 
     if (Settings.DumpStreams)
         return;
@@ -694,10 +709,13 @@ void S9xHandlePortCommand(s9xcommand_t cmd, int16 data1, int16 data2) {
  */
 bool8 S9xOpenSoundDevice(void) {
 
-#ifndef NOSOUND
+#ifdef NOSOUND
+    printf("S9xOpenSoundDevice (dummy)\n");
+    S9xSetSamplesAvailableCallback(S9xSamplesAvailable, nullptr);
+#else
     printf("S9xOpenSoundDevice\n");
     Audio *audio = new C2DAudio(Settings.SoundPlaybackRate, 60, S9xAudioCallback);
-    _ui->setAudio(audio);
+    _ui->addAudio(audio);
     S9xSetSamplesAvailableCallback(S9xSamplesAvailable, nullptr);
 #endif
     return TRUE;
