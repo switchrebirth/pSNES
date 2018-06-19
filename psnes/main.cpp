@@ -63,21 +63,6 @@ C2DUISkin *skin;
 C2DUIGuiRomList *uiRomList;
 C2DUIGuiState *uiState;
 
-#ifdef __SWITCH__
-
-char *strdup(const char *str) {
-    size_t siz;
-    char *copy;
-
-    siz = strlen(str) + 1;
-    if ((copy = (char *) malloc(siz)) == NULL)
-        return (NULL);
-    memcpy(copy, str, siz);
-    return (copy);
-}
-
-#endif
-
 int main(int argc, char **argv) {
 
     // buttons used for ui config menu
