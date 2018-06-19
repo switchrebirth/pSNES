@@ -15,6 +15,8 @@ public:
 
     ~PSNESRomList();
 
+    void buildNoDb();
+
     void build() override;
 
     bool isHardware(int hardware, int type) override {

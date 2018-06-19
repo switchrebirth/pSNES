@@ -17,6 +17,32 @@ PSNESRomList::PSNESRomList(C2DUIGuiMain *ui, const std::string &emuVersion) : C2
     printf("PSNESRomList::PSNESRomList()\n");
 }
 
+void PSNESRomList::buildNoDb() {
+
+    printf("PSNESRomList::buildNoDb()\n");
+
+    for (unsigned int i = 0; i < C2DUI_ROMS_PATHS_MAX; i++) {
+
+        if (files[i].empty()) {
+            continue;
+        }
+
+        for (unsigned int j = 0; j < files[i].size(); j++) {
+            auto *rom = new Rom();
+            rom->name = rom->drv_name = (char *) files[i][j].c_str();
+            strncpy(rom->zip, rom->name, 63);
+            rom->state = RomState::WORKING;
+            hardwareList->at(0).supported_count++;
+            hardwareList->at(0).available_count++;
+            rom->color = COL_GREEN;
+            list.push_back(rom);
+            printf("new rom: %s\n", rom->name);
+        }
+    }
+
+    C2DUIRomList::build();
+}
+
 void PSNESRomList::build() {
 
     printf("PSNESRomList::build()\n");
@@ -29,8 +55,8 @@ void PSNESRomList::build() {
     XMLError e = doc.LoadFile(xmlPath);
     if (e != XML_SUCCESS) {
         printf("error: %s\n", tinyxml2::XMLDocument::ErrorIDToName(e));
-        ui->getUiMessageBox()->show("ERROR", "could not load db.xml");
-        C2DUIRomList::build();
+        ui->getUiMessageBox()->show("ERROR", "Could not load db.xml\n\nWill just add any found files...");
+        buildNoDb();
         return;
     }
 
@@ -40,18 +66,18 @@ void PSNESRomList::build() {
         // try "http://hyperspin-fe.com/" format
         pRoot = doc.FirstChildElement("menu");
         if (!pRoot) {
-            printf("error: incorrect db.xml format\n");
+            printf("error: incorrect db.xml format\n\nWill just add any found files...");
             ui->getUiMessageBox()->show("ERROR", "incorrect db.xml format");
-            C2DUIRomList::build();
+            buildNoDb();
             return;
         }
     }
 
     XMLNode *pGame = pRoot->FirstChildElement("game");
     if (!pGame) {
-        printf("error: <game> node not found, incorrect format\n");
+        printf("error: <game> node not found, incorrect format\n\nWill just add any found files...");
         ui->getUiMessageBox()->show("ERROR", "incorrect db.xml format");
-        C2DUIRomList::build();
+        buildNoDb();
         return;
     }
 
@@ -105,7 +131,7 @@ void PSNESRomList::build() {
             }
 
             if (file != files[j].end()) {
-                printf("found: %s\n", path);
+                //printf("found: %s\n", path);
                 rom->state = RomState::WORKING;
                 hardwareList->at(0).available_count++;
                 if (rom->parent) {

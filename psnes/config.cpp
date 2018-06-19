@@ -19,7 +19,7 @@ PSNESConfig::PSNESConfig(Renderer *renderer, const std::string &home, int versio
     getRomPaths()->clear();
     getRomPaths()->emplace_back(home + "roms/");
     for (size_t i = 1; i < C2DUI_ROMS_PATHS_MAX; i++) {
-        getRomPaths()->emplace_back("");
+        getRomPaths()->emplace_back(home + "roms" + std::to_string((int) i) + "/");
     }
 
     // add hardware list
