@@ -101,7 +101,6 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     Settings.TurboSkipFrames = 15;
     Settings.CartAName[0] = 0;
     Settings.CartBName[0] = 0;
-
     Settings.SupportHiRes = FALSE;
 
     CPU.Flags = 0;
@@ -147,7 +146,7 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     char file[512];
     snprintf(file, 511, "%s%s.zip", getUi()->getConfig()->getRomPath(0), rom->zip);
     if (!Memory.LoadROM(file)) {
-        printf("Could not open ROM: %s\n, trying without adding zip extension...", file);
+        printf("Could not open ROM: %s\n, trying without adding zip extension...\n", file);
         snprintf(file, 511, "%s%s", getUi()->getConfig()->getRomPath(0), rom->zip);
         if (!Memory.LoadROM(file)) {
             stop();
@@ -172,11 +171,12 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     Settings.StopEmulation = FALSE;
 
     // Initialize filters
-    // S9xBlitFilterInit();
+    S9xBlitFilterInit();
     // S9xBlit2xSaIFilterInit();
     // S9xBlitHQ2xFilterInit();
 
     int w, h;
+    Settings.SupportHiRes = FALSE;
     if (!Settings.SupportHiRes) {
         w = SNES_WIDTH;
         h = SNES_HEIGHT;
@@ -190,9 +190,11 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     setVideo(video);
 
     // TODO: crappy hack, snes9x want a "SNES_HEIGHT_EXTENDED" buffer
-    free(video->pixels);
-    video->pixels = (unsigned char *) malloc((size_t) (SNES_WIDTH * SNES_HEIGHT_EXTENDED * 2));
-    video->lock(nullptr, (void **) &GFX.Screen, nullptr);
+    if (!Settings.SupportHiRes) {
+        free(video->pixels);
+        video->pixels = (unsigned char *) malloc((size_t) (SNES_WIDTH * SNES_HEIGHT_EXTENDED * 2));
+        video->lock(nullptr, (void **) &GFX.Screen, nullptr);
+    }
 
     S9xGraphicsInit();
     S9xSetSoundMute(FALSE);
@@ -209,7 +211,7 @@ void PSNESGuiEmu::stop() {
     S9xResetSaveTimer(FALSE);
     //S9xSaveCheatFile(S9xGetFilename(".bml", CHEAT_DIR));
 
-    //S9xBlitFilterDeinit();
+    S9xBlitFilterDeinit();
     //S9xBlit2xSaIFilterDeinit();
     //S9xBlitHQ2xFilterDeinit();
 
@@ -290,7 +292,7 @@ bool8 S9xDeinitUpdate(int width, int height) {
 
     C2DUIVideo *video = _ui->getUiEmu()->getVideo();
 
-    // TODO
+    // TODO: handle multiple resolutions
     if ((width <= SNES_WIDTH) && ((video->getSize().x != width) || (video->getSize().y != height))) {
         //printf("TODO: S9xDeinitUpdate(%i x %i)\n", width, height);
         //S9xBlitClearDelta();

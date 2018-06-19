@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 
 # psnes version
 set(PSNES_VERSION_MAJOR 1)
-set(PSNES_VERSION_MINOR 0)
+set(PSNES_VERSION_MINOR 1)
 
 # delete cmake cache folder before changing this option
 set(BUILD_SFML OFF CACHE BOOL "Build with SFML support")
@@ -19,6 +19,8 @@ set(BUILD_NX_GL OFF CACHE BOOL "Build with NX (SWITCH) support (software, osmesa
 
 set(BUILD_PFBA OFF CACHE BOOL "Build with PFBA support")
 set(BUILD_SNES9X ON CACHE BOOL "Build with SNES9X support")
+
+set(UPDATE_CONFIG ON CACHE BOOL "Force config file updating")
 
 option(BUILD_SOUND "Build with audio support" ON)
 option(BUILD_SCREENSHOT "Build with screenshot support" ON)
@@ -95,7 +97,7 @@ set(SNES9X_LDFLAGS m z png)
 if (BUILD_SOUND)
     #list(APPEND SNES9X_CFLAGS -DUSE_THREADS)
     #list(APPEND SNES9X_LDFLAGS pthread)
-else()
+else ()
     list(APPEND SNES9X_CFLAGS -DNOSOUND)
 endif (BUILD_SOUND)
 if (BUILD_SCREENSHOT)

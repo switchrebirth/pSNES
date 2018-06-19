@@ -17,6 +17,8 @@
  *
  */
 
+#include <sys/stat.h>
+
 #include "c2dui.h"
 #include "uiEmu.h"
 #include "uiMenu.h"
@@ -87,7 +89,7 @@ int main(int argc, char **argv) {
     buttons.emplace_back(KEY_JOY_FIRE6_DEFAULT, "R");
     buttons.emplace_back(KEY_JOY_COIN1_DEFAULT, "SELECT");
     buttons.emplace_back(KEY_JOY_START1_DEFAULT, "START");
-#elif __NX__
+#elif __SWITCH__
     // see c2d.h for key id
     buttons.emplace_back(KEY_JOY_UP_DEFAULT, "UP");
     buttons.emplace_back(KEY_JOY_DOWN_DEFAULT, "DOWN");
