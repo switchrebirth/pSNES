@@ -176,9 +176,19 @@ endif (BUILD_PSP2)
 # NX (SWITCH) target
 #####################
 if (BUILD_NX)
-    set_target_properties(${CMAKE_PROJECT_NAME}.elf PROPERTIES LINK_FLAGS "-specs=${DEVKITPRO}/libnx/switch.specs")
-    add_custom_target(${CMAKE_PROJECT_NAME}.nro
-            DEPENDS ${CMAKE_PROJECT_NAME}.elf
+    set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINK_FLAGS "-specs=${DEVKITPRO}/libnx/switch.specs")
+    add_custom_target(${PROJECT_NAME}.nro
+            DEPENDS ${PROJECT_NAME}.elf
             COMMAND nacptool --create "pSNES" "Cpasjuste" "${PSNES_VERSION_MAJOR}.${PSNES_VERSION_MINOR}" psnes.nacp
             COMMAND elf2nro ${PROJECT_NAME}.elf ${PROJECT_NAME}.nro --icon=${CMAKE_SOURCE_DIR}/psnes/data/nx/icon.jpg --nacp=psnes.nacp)
+    add_custom_target(${PROJECT_NAME}_switch.zip
+            DEPENDS ${PROJECT_NAME}.nro
+            COMMAND rm -rf ${CMAKE_BINARY_DIR}/release/psnes
+            COMMAND mkdir -p ${CMAKE_BINARY_DIR}/release/psnes && mkdir -p ${CMAKE_BINARY_DIR}/release/psnes/roms
+            COMMAND cp -f ${CMAKE_BINARY_DIR}/psnes.nro ${CMAKE_BINARY_DIR}/release/psnes/psnes.nro
+            COMMAND cp -r ${CMAKE_SOURCE_DIR}/psnes/data/skin ${CMAKE_BINARY_DIR}/release/psnes/
+            COMMAND cp -r ${CMAKE_SOURCE_DIR}/psnes/data/nx/skin ${CMAKE_BINARY_DIR}/release/psnes/
+            COMMAND cp -f ${CMAKE_SOURCE_DIR}/psnes/data/databases/Super_Nintendo_Entertainment_System_Parent-Clone_20180601-221617_dat-o-matic.xml ${CMAKE_BINARY_DIR}/release/psnes/db.xml
+            COMMAND cd ${CMAKE_BINARY_DIR}/release/psnes && zip -r ../${PROJECT_NAME}-${PSNES_VERSION_MAJOR}.${PSNES_VERSION_MINOR}_switch.zip . && cd ${CMAKE_BINARY_DIR}
+            )
 endif (BUILD_NX)
