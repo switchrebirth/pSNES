@@ -21,6 +21,9 @@ using namespace c2dui;
 
 static C2DUIGuiMain *_ui;
 
+static uint16 *gfx_snes_buffer;
+static uint16 *gfx_video_buffer;
+
 static const char *s9x_base_dir = nullptr;
 
 static char default_dir[PATH_MAX + 1];
@@ -180,30 +183,38 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     Settings.StopEmulation = FALSE;
 
     // Initialize filters
-    // S9xBlitFilterInit();
-    // S9xBlit2xSaIFilterInit();
-    // S9xBlitHQ2xFilterInit();
+    S9xBlitFilterInit();
+    S9xBlit2xSaIFilterInit();
+    S9xBlitHQ2xFilterInit();
 
+    /*
     int w, h;
     Settings.SupportHiRes = FALSE;
     if (!Settings.SupportHiRes) {
-        w = SNES_WIDTH;
-        h = SNES_HEIGHT;
+        w = SNES_WIDTH * 2;
+        h = SNES_HEIGHT * 2;
     } else {
         w = IMAGE_WIDTH;
         h = IMAGE_HEIGHT;
     }
+    */
+
+    gfx_snes_buffer = (uint16 *) malloc(SNES_WIDTH * SNES_HEIGHT_EXTENDED * 2);
+    GFX.Screen = gfx_snes_buffer;
+    GFX.Pitch = (uint32) SNES_WIDTH * 2;
 
     C2DUIVideo *video = new C2DUIVideo(
-            getUi(), (void **) &GFX.Screen, (int *) &GFX.Pitch, Vector2f(w, h));
+            getUi(), (void **) &gfx_video_buffer, nullptr, Vector2f(SNES_WIDTH * 2, SNES_HEIGHT * 2));
     setVideo(video);
 
     // TODO: crappy hack, snes9x want a "SNES_HEIGHT_EXTENDED" buffer
+    /*
     if (!Settings.SupportHiRes) {
         free(video->pixels);
         video->pixels = (unsigned char *) malloc((size_t) (SNES_WIDTH * SNES_HEIGHT_EXTENDED * 2));
         video->lock(nullptr, (void **) &GFX.Screen, nullptr);
     }
+    */
 
     S9xGraphicsInit();
     S9xSetSoundMute(FALSE);
@@ -220,9 +231,9 @@ void PSNESGuiEmu::stop() {
     //S9xResetSaveTimer(FALSE);
     //S9xSaveCheatFile(S9xGetFilename(".bml", CHEAT_DIR));
 
-    //S9xBlitFilterDeinit();
-    //S9xBlit2xSaIFilterDeinit();
-    //S9xBlitHQ2xFilterDeinit();
+    S9xBlitFilterDeinit();
+    S9xBlit2xSaIFilterDeinit();
+    S9xBlitHQ2xFilterDeinit();
 
     S9xUnmapAllControls();
     S9xGraphicsDeinit();
@@ -287,8 +298,8 @@ int PSNESGuiEmu::update() {
  */
 bool8 S9xInitUpdate() {
 
-    //C2DUIVideo *video = _ui->getUiEmu()->getVideo();
-    //video->lock(nullptr, (void **) &GFX.Screen, nullptr);
+    C2DUIVideo *video = _ui->getUiEmu()->getVideo();
+    video->lock(nullptr, (void **) &gfx_video_buffer, nullptr);
 
     return TRUE;
 }
@@ -308,6 +319,9 @@ bool8 S9xDeinitUpdate(int width, int height) {
         //printf("TODO: S9xDeinitUpdate(%i x %i)\n", width, height);
         //S9xBlitClearDelta();
     }
+
+    S9xBlitPixHQ2x16((uint8 *) GFX.Screen, GFX.Pitch,
+                        (uint8 *) gfx_video_buffer, video->pitch, width, height);
 
     video->unlock();
 #ifdef __SWITCH__

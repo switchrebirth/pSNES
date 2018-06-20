@@ -9,12 +9,12 @@ set(PSNES_VERSION_MINOR 2)
 set(BUILD_SFML OFF CACHE BOOL "Build with SFML support")
 set(BUILD_SDL1 OFF CACHE BOOL "Build with SDL1 support (software, osmesa) support")
 set(BUILD_SDL1_GL OFF CACHE BOOL "Build with SDL1 support (hardware rendering, fast, needs BUILD_SDL1=ON)")
-set(BUILD_SDL2 ON CACHE BOOL "Build with SDL2 (software) support")
-set(BUILD_SDL2_GL ON CACHE BOOL "Build with SDL2 support (hardware rendering, fast, needs BUILD_SDL2=ON)")
+set(BUILD_SDL2 OFF CACHE BOOL "Build with SDL2 (software) support")
+set(BUILD_SDL2_GL OFF CACHE BOOL "Build with SDL2 support (hardware rendering, fast, needs BUILD_SDL2=ON)")
 set(BUILD_PSP2 OFF CACHE BOOL "Build with PSP2 support")
 set(BUILD_PS3 OFF CACHE BOOL "Build with PS3 support")
 set(BUILD_3DS OFF CACHE BOOL "Build with 3DS support")
-set(BUILD_NX OFF CACHE BOOL "Build with NX (SWITCH) support")
+set(BUILD_NX ON CACHE BOOL "Build with NX (SWITCH) support")
 set(BUILD_NX_GL OFF CACHE BOOL "Build with NX (SWITCH) support (software, osmesa)")
 
 set(BUILD_PFBA OFF CACHE BOOL "Build with PFBA support")
@@ -70,12 +70,12 @@ list(REMOVE_ITEM SNES9X_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/spc7110dec.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/spc7110emu.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/srtcemu.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/blit.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/xbrz.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/hq2x.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/2xsai.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/epx.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/snes_ntsc.c
+        #${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/blit.cpp
+        #${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/xbrz.cpp
+        #${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/hq2x.cpp
+        #${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/2xsai.cpp
+        #${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/epx.cpp
+        #${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/snes_ntsc.c
         ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/apu/bapu/smp/algorithms.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/apu/bapu/smp/core.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/apu/bapu/smp/memory.cpp
