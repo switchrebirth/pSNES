@@ -12,6 +12,10 @@ using namespace tinyxml2;
 
 static XMLDocument doc;
 
+static bool sortByName(const C2DUIRomList::Rom *ra, const C2DUIRomList::Rom *rb) {
+    return strcasecmp(ra->name, rb->name) <= 0;
+}
+
 PSNESRomList::PSNESRomList(C2DUIGuiMain *ui, const std::string &emuVersion) : C2DUIRomList(ui, emuVersion) {
 
     printf("PSNESRomList::PSNESRomList()\n");
@@ -39,6 +43,9 @@ void PSNESRomList::buildNoDb() {
         }
     }
 
+    std::sort(list.begin(), list.end(), sortByName);
+
+    // cleanup
     C2DUIRomList::build();
 }
 
@@ -165,6 +172,8 @@ void PSNESRomList::build() {
         }
         // UI
     }
+
+    std::sort(list.begin(), list.end(), sortByName);
 
     // cleanup
     C2DUIRomList::build();
