@@ -29,14 +29,13 @@ void PSNESRomList::buildNoDb() {
 
         for (unsigned int j = 0; j < files[i].size(); j++) {
             auto *rom = new Rom();
-            rom->name = rom->drv_name = (char *) files[i][j].c_str();
-            strncpy(rom->zip, rom->name, 63);
+            rom->name = rom->drv_name = files[i][j].c_str();
+            rom->path = files[i][j].c_str();
             rom->state = RomState::WORKING;
             hardwareList->at(0).supported_count++;
             hardwareList->at(0).available_count++;
             rom->color = COL_GREEN;
             list.push_back(rom);
-            printf("new rom: %s\n", rom->name);
         }
     }
 
@@ -86,27 +85,24 @@ void PSNESRomList::build() {
         auto *rom = new Rom();
 
         // get "name"
-        rom->name = rom->drv_name = (char *) pGame->ToElement()->Attribute("name");
-        strncpy(rom->zip, rom->name, 63);
+        rom->name = rom->drv_name = rom->path = pGame->ToElement()->Attribute("name");
         // get "cloneof"
         XMLElement *element = pGame->FirstChildElement("cloneof");
         if (element != nullptr && element->GetText()) {
-            rom->parent = (char *) element->GetText();
+            rom->parent = element->GetText();
         } else {
-            rom->parent = (char *) pGame->ToElement()->Attribute("cloneof");
+            rom->parent = pGame->ToElement()->Attribute("cloneof");
         }
         // get "year"
         element = pGame->FirstChildElement("year");
         if (element != nullptr && element->GetText()) {
-            rom->year = (char *) element->GetText();
+            rom->year = element->GetText();
         }
         // get "manufacturer"
         element = pGame->FirstChildElement("manufacturer");
         if (element && element->GetText()) {
-            rom->manufacturer = (char *) element->GetText();
+            rom->manufacturer = element->GetText();
         }
-
-        rom->state = RomState::MISSING;
 
         // add rom to "ALL" game list
         hardwareList->at(0).supported_count++;
@@ -114,7 +110,7 @@ void PSNESRomList::build() {
             hardwareList->at(0).clone_count++;
         }
 
-        snprintf(path, 511, "%s.zip", rom->zip);
+        snprintf(path, 511, "%s.zip", rom->name);
         for (int k = 0; k < (int) strlen(path); k++) {
             pathUppercase[k] = (char) toupper(path[k]);
         }
@@ -131,7 +127,7 @@ void PSNESRomList::build() {
             }
 
             if (file != files[j].end()) {
-                //printf("found: %s\n", path);
+                rom->path = file->c_str();
                 rom->state = RomState::WORKING;
                 hardwareList->at(0).available_count++;
                 if (rom->parent) {

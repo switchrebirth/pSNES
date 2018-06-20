@@ -156,15 +156,11 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
 #endif
 
     char file[512];
-    snprintf(file, 511, "%s%s.zip", getUi()->getConfig()->getRomPath(0), rom->zip);
+    snprintf(file, 511, "%s%s", getUi()->getConfig()->getRomPath(0), rom->path);
     if (!Memory.LoadROM(file)) {
-        printf("Could not open ROM: %s, trying without adding zip extension...\n", file);
-        snprintf(file, 511, "%s%s", getUi()->getConfig()->getRomPath(0), rom->zip);
-        if (!Memory.LoadROM(file)) {
-            printf("Could not open ROM: %s\n", file);
-            stop();
-            return -1;
-        }
+        printf("Could not open ROM: %s\n", file);
+        stop();
+        return -1;
     }
 
     //S9xDeleteCheats();
