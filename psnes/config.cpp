@@ -59,20 +59,20 @@ PSNESConfig::PSNESConfig(Renderer *renderer, const std::string &home, int versio
     ui_options->emplace_back(
             C2DUIOption("EMULATION", {"EMULATION"}, 0, C2DUIOption::Index::MENU_ROM_OPTIONS, C2DUIOption::Type::MENU));
     ui_options->emplace_back(
-            C2DUIOption("SCALING", {"NONE", "2X", "3X", "FIT", "FIT 4:3", "FULL"},
-                        3, C2DUIOption::Index::ROM_SCALING));
+            C2DUIOption("SCALING", {"NONE", "2X", "3X", "FIT", "FIT 4:3", "FULL"}, 4, C2DUIOption::Index::ROM_SCALING));
     ui_options->emplace_back(
-            C2DUIOption("FILTER", {"POINT", "LINEAR"}, 0, C2DUIOption::Index::ROM_FILTER));
+            C2DUIOption("FILTER", {"POINT", "LINEAR"}, 1, C2DUIOption::Index::ROM_FILTER));
     if (renderer->getShaderList() != nullptr) {
         ui_options->emplace_back(
                 C2DUIOption("EFFECT", renderer->getShaderList()->getNames(), 0, C2DUIOption::Index::ROM_SHADER));
     } else {
         ui_options->emplace_back(
-                C2DUIOption("EFFECT", {"UNUSED"}, 0, C2DUIOption::Index::ROM_SHADER, C2DUIOption::Type::HIDDEN));
+                C2DUIOption("EFFECT", {"NA"}, 0, C2DUIOption::Index::ROM_SHADER, C2DUIOption::Type::HIDDEN));
     }
 #ifdef __PSP2__
     ui_options->emplace_back(
-            C2DUIOption("ROTATION", {"OFF", "ON", "FLIP", "CAB MODE"}, 0, C2DUIOption::Index::ROM_ROTATION));
+            C2DUIOption("ROTATION", {"OFF", "ON", "FLIP", "CAB MODE"}, 0, C2DUIOption::Index::ROM_ROTATION,
+                        C2DUIOption::Type::HIDDEN));
 #else
     ui_options->emplace_back(
             C2DUIOption("ROTATION", {"OFF", "ON", "FLIP"}, 0, C2DUIOption::Index::ROM_ROTATION,
@@ -149,29 +149,29 @@ PSNESConfig::PSNESConfig(Renderer *renderer, const std::string &home, int versio
     ui_options->emplace_back(
             C2DUIOption("KEYBOARD", {"KEYBOARD"}, 0, C2DUIOption::Index::MENU_KEYBOARD, C2DUIOption::Type::MENU));
     ui_options->emplace_back(C2DUIOption("KEY_UP", {std::to_string(KEY_KB_UP_DEFAULT)}, KEY_KB_UP_DEFAULT,
-                                           C2DUIOption::Index::KEY_UP, C2DUIOption::Type::INPUT));        // KP_UP
+                                         C2DUIOption::Index::KEY_UP, C2DUIOption::Type::INPUT));        // KP_UP
     ui_options->emplace_back(C2DUIOption("KEY_DOWN", {std::to_string(KEY_KB_DOWN_DEFAULT)}, KEY_KB_DOWN_DEFAULT,
-                                           C2DUIOption::Index::KEY_DOWN, C2DUIOption::Type::INPUT));    // KP_DOWN
+                                         C2DUIOption::Index::KEY_DOWN, C2DUIOption::Type::INPUT));    // KP_DOWN
     ui_options->emplace_back(C2DUIOption("KEY_LEFT", {std::to_string(KEY_KB_LEFT_DEFAULT)}, KEY_KB_LEFT_DEFAULT,
-                                           C2DUIOption::Index::KEY_LEFT, C2DUIOption::Type::INPUT));    // KP_LEFT
+                                         C2DUIOption::Index::KEY_LEFT, C2DUIOption::Type::INPUT));    // KP_LEFT
     ui_options->emplace_back(C2DUIOption("KEY_RIGHT", {std::to_string(KEY_KB_RIGHT_DEFAULT)}, KEY_KB_RIGHT_DEFAULT,
-                                           C2DUIOption::Index::KEY_RIGHT, C2DUIOption::Type::INPUT));  // KP_RIGHT
+                                         C2DUIOption::Index::KEY_RIGHT, C2DUIOption::Type::INPUT));  // KP_RIGHT
     ui_options->emplace_back(C2DUIOption("KEY_FIRE1", {std::to_string(KEY_KB_FIRE1_DEFAULT)}, KEY_KB_FIRE1_DEFAULT,
-                                           C2DUIOption::Index::KEY_FIRE1, C2DUIOption::Type::INPUT));  // KP_1
+                                         C2DUIOption::Index::KEY_FIRE1, C2DUIOption::Type::INPUT));  // KP_1
     ui_options->emplace_back(C2DUIOption("KEY_FIRE2", {std::to_string(KEY_KB_FIRE2_DEFAULT)}, KEY_KB_FIRE2_DEFAULT,
-                                           C2DUIOption::Index::KEY_FIRE2, C2DUIOption::Type::INPUT));  // KP_2
+                                         C2DUIOption::Index::KEY_FIRE2, C2DUIOption::Type::INPUT));  // KP_2
     ui_options->emplace_back(C2DUIOption("KEY_FIRE3", {std::to_string(KEY_KB_FIRE3_DEFAULT)}, KEY_KB_FIRE3_DEFAULT,
-                                           C2DUIOption::Index::KEY_FIRE3, C2DUIOption::Type::INPUT));  // KP_3
+                                         C2DUIOption::Index::KEY_FIRE3, C2DUIOption::Type::INPUT));  // KP_3
     ui_options->emplace_back(C2DUIOption("KEY_FIRE4", {std::to_string(KEY_KB_FIRE4_DEFAULT)}, KEY_KB_FIRE4_DEFAULT,
-                                           C2DUIOption::Index::KEY_FIRE4, C2DUIOption::Type::INPUT));  // KP_4
+                                         C2DUIOption::Index::KEY_FIRE4, C2DUIOption::Type::INPUT));  // KP_4
     ui_options->emplace_back(C2DUIOption("KEY_FIRE5", {std::to_string(KEY_KB_FIRE5_DEFAULT)}, KEY_KB_FIRE5_DEFAULT,
-                                           C2DUIOption::Index::KEY_FIRE5, C2DUIOption::Type::INPUT));  // KP_5
+                                         C2DUIOption::Index::KEY_FIRE5, C2DUIOption::Type::INPUT));  // KP_5
     ui_options->emplace_back(C2DUIOption("KEY_FIRE6", {std::to_string(KEY_KB_FIRE6_DEFAULT)}, KEY_KB_FIRE6_DEFAULT,
-                                           C2DUIOption::Index::KEY_FIRE6, C2DUIOption::Type::INPUT));  // KP_6
+                                         C2DUIOption::Index::KEY_FIRE6, C2DUIOption::Type::INPUT));  // KP_6
     ui_options->emplace_back(C2DUIOption("KEY_COIN1", {std::to_string(KEY_KB_COIN1_DEFAULT)}, KEY_KB_COIN1_DEFAULT,
-                                           C2DUIOption::Index::KEY_COIN1, C2DUIOption::Type::INPUT));  // ESCAPE
+                                         C2DUIOption::Index::KEY_COIN1, C2DUIOption::Type::INPUT));  // ESCAPE
     ui_options->emplace_back(C2DUIOption("KEY_START1", {std::to_string(KEY_KB_START1_DEFAULT)}, KEY_KB_START1_DEFAULT,
-                                           C2DUIOption::Index::KEY_START1, C2DUIOption::Type::INPUT));// ENTER
+                                         C2DUIOption::Index::KEY_START1, C2DUIOption::Type::INPUT));// ENTER
 #endif
 
     //
