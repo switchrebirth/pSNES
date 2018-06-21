@@ -101,6 +101,9 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     s9x_base_dir = default_dir;
 
     memset(&Settings, 0, sizeof(Settings));
+    S9xLoadConfigFiles(nullptr, 0);
+
+    // override S9xLoadConfigFiles
     Settings.MouseMaster = FALSE;
     Settings.SuperScopeMaster = FALSE;
     Settings.JustifierMaster = FALSE;
@@ -133,7 +136,6 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
 
     CPU.Flags = 0;
 
-    S9xLoadConfigFiles(nullptr, 0);
     make_snes9x_dirs();
 
     if (!Memory.Init() || !S9xInitAPU()) {
