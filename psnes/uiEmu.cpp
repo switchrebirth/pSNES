@@ -829,13 +829,19 @@ void S9xExit() {
  * Eventually all debug output will also go via this function, trace information already does.
  */
 void S9xMessage(int type, int number, const char *message) {
-    printf("S9xMessage: type: %d number: %d message: %s\n", type, number, message);
+    const int max = 36 * 3;
+    static char buffer[max + 1];
+    printf("[%i][%i]: %s\n", type, number, message);
+    strncpy(buffer, message, max + 1);
+    buffer[max] = 0;
+    S9xSetInfoString(buffer);
 }
 
 /**
  * Used by Snes9x to ask the user for input.
  */
 const char *S9xStringInput(const char *message) {
+    /*
     static char buffer[256];
 
     printf("%s: ", message);
@@ -844,7 +850,7 @@ const char *S9xStringInput(const char *message) {
     if (fgets(buffer, sizeof(buffer) - 2, stdin)) {
         return buffer;
     }
-
+    */
     return nullptr;
 }
 
