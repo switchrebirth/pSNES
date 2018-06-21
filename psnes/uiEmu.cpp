@@ -149,8 +149,8 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
         stop();
         return -1;
     }
+    S9xSetSoundMute(TRUE);
 
-    // TODO
     S9xUnmapAllControls();
     S9xSetController(0, CTL_JOYPAD, 0, 0, 0, 0);
     S9xMapButton(0, S9xGetCommandT("Joypad1 Up"), false);
@@ -165,8 +165,20 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     S9xMapButton(9, S9xGetCommandT("Joypad1 R"), false);
     S9xMapButton(10, S9xGetCommandT("Joypad1 Start"), false);
     S9xMapButton(11, S9xGetCommandT("Joypad1 Select"), false);
+    S9xSetController(1, CTL_JOYPAD, 1, 0, 0, 0);
+    S9xMapButton(12, S9xGetCommandT("Joypad2 Up"), false);
+    S9xMapButton(13, S9xGetCommandT("Joypad2 Down"), false);
+    S9xMapButton(14, S9xGetCommandT("Joypad2 Left"), false);
+    S9xMapButton(15, S9xGetCommandT("Joypad2 Right"), false);
+    S9xMapButton(16, S9xGetCommandT("Joypad2 A"), false);
+    S9xMapButton(17, S9xGetCommandT("Joypad2 B"), false);
+    S9xMapButton(18, S9xGetCommandT("Joypad2 X"), false);
+    S9xMapButton(19, S9xGetCommandT("Joypad2 Y"), false);
+    S9xMapButton(20, S9xGetCommandT("Joypad2 L"), false);
+    S9xMapButton(21, S9xGetCommandT("Joypad2 R"), false);
+    S9xMapButton(22, S9xGetCommandT("Joypad2 Start"), false);
+    S9xMapButton(23, S9xGetCommandT("Joypad2 Select"), false);
     S9xReportControllers();
-    // TODO
 
     uint32 saved_flags = CPU.Flags;
 
@@ -184,7 +196,6 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
 
     //S9xDeleteCheats();
     //S9xCheatsEnable();
-
     Memory.LoadSRAM(S9xGetFilename(".srm", SRAM_DIR));
     // TODO
     /*
