@@ -297,6 +297,19 @@ int PSNESGuiEmu::update() {
     S9xReportButton(10, (players[0].state & Input::Key::KEY_START) > 0);
     S9xReportButton(11, (players[0].state & Input::Key::KEY_COIN) > 0);
 
+    S9xReportButton(12, (players[1].state & Input::Key::KEY_UP) > 0);
+    S9xReportButton(13, (players[1].state & Input::Key::KEY_DOWN) > 0);
+    S9xReportButton(14, (players[1].state & Input::Key::KEY_LEFT) > 0);
+    S9xReportButton(15, (players[1].state & Input::Key::KEY_RIGHT) > 0);
+    S9xReportButton(16, (players[1].state & Input::Key::KEY_FIRE1) > 0);
+    S9xReportButton(17, (players[1].state & Input::Key::KEY_FIRE2) > 0);
+    S9xReportButton(18, (players[1].state & Input::Key::KEY_FIRE3) > 0);
+    S9xReportButton(19, (players[1].state & Input::Key::KEY_FIRE4) > 0);
+    S9xReportButton(20, (players[1].state & Input::Key::KEY_FIRE5) > 0);
+    S9xReportButton(21, (players[1].state & Input::Key::KEY_FIRE6) > 0);
+    S9xReportButton(22, (players[1].state & Input::Key::KEY_START) > 0);
+    S9xReportButton(23, (players[1].state & Input::Key::KEY_COIN) > 0);
+
     return 0;
 }
 
