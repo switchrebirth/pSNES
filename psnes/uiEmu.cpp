@@ -112,10 +112,9 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
 #ifdef __SWITCH__
     Settings.SoundPlaybackRate = 48000;
 #else
-    Settings.SoundPlaybackRate = 32040;
+    Settings.SoundPlaybackRate = 32000;
 #endif
-    Settings.SoundInputRate = 32040;
-    Settings.SoundSync = TRUE;
+    Settings.SoundInputRate = 32000;
     Settings.Transparency = TRUE;
     Settings.AutoDisplayMessages = TRUE;
     Settings.InitialInfoStringTimeout = 120;
@@ -134,6 +133,7 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
 
     CPU.Flags = 0;
 
+    S9xLoadConfigFiles(nullptr, 0);
     make_snes9x_dirs();
 
     if (!Memory.Init() || !S9xInitAPU()) {
@@ -659,7 +659,6 @@ void S9xAutoSaveSRAM() {
  */
 void S9xSyncSpeed() {
 
-//#ifndef NOSOUND
     if (Settings.SoundSync) {
         while (!S9xSyncSound()) {
 #ifdef __SWITCH__
@@ -669,7 +668,6 @@ void S9xSyncSpeed() {
 #endif
         }
     }
-//#endif
 
     if (Settings.DumpStreams)
         return;
