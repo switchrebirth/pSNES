@@ -1,13 +1,14 @@
 //
 // Created by cpasjuste on 01/12/16.
 //
-#ifndef __SWITCH__
 
 #include "c2dui.h"
 #include "video.h"
 
 using namespace c2d;
 using namespace c2dui;
+
+extern bool snes9x_width_extended;
 
 PSNESVideo::PSNESVideo(C2DUIGuiMain *gui, void **_pixels, int *_pitch, const c2d::Vector2f &size)
         : C2DUIVideo(gui, _pixels, _pitch, size) {
@@ -67,8 +68,9 @@ void PSNESVideo::updateScaling() {
     }
 
     setOriginCenter();
-    setPosition(screen.x / 2, screen.y / 2);
-    setScale(sx, sy);
+    // remove snes9x border if needed
+    float posY = snes9x_width_extended ? screen.y / 2 : (screen.y / 2) * 1.065f;
+    float scaleY = snes9x_width_extended ? sy : sy * 1.065f;
+    setPosition(screen.x / 2, posY);
+    setScale(sx, scaleY);
 }
-
-#endif // __SWITCH__

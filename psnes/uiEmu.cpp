@@ -10,7 +10,6 @@
 #include <conffile.h>
 #include <display.h>
 #include <sys/stat.h>
-#include <snapshot.h>
 #include <cheats.h>
 
 #include "c2dui.h"
@@ -22,8 +21,22 @@ using namespace c2dui;
 
 static C2DUIGuiMain *_ui;
 
-static uint16 *gfx_snes_buffer;
-static uint16 *gfx_video_buffer;
+typedef void (*Blitter)(uint8 *, int, uint8 *, int, int, int);
+
+enum {
+    VIDEOMODE_BLOCKY = 0,
+    VIDEOMODE_TV,
+    VIDEOMODE_SMOOTH,
+    VIDEOMODE_SUPEREAGLE,
+    VIDEOMODE_2XSAI,
+    VIDEOMODE_SUPER2XSAI,
+    VIDEOMODE_EPX,
+    VIDEOMODE_HQ2X
+};
+
+static uint8 *gfx_snes_buffer;
+static uint8 *gfx_video_buffer;
+bool snes9x_width_extended = false;
 
 static const char *s9x_base_dir = nullptr;
 
@@ -37,7 +50,7 @@ static const char dirNames[13][32] =
                 "roms",          // ROM_DIR
                 "sram",         // SRAM_DIR
                 "saves",        // SNAPSHOT_DIR
-                "screenshot",   // SCREENSHOT_DIR
+                "screenshots",  // SCREENSHOT_DIR
                 "spc",          // SPC_DIR
                 "cheat",        // CHEAT_DIR
                 "patch",        // PATCH_DIR
@@ -116,7 +129,7 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     Settings.TurboSkipFrames = 15;
     Settings.CartAName[0] = 0;
     Settings.CartBName[0] = 0;
-    Settings.SupportHiRes = FALSE;
+    Settings.SupportHiRes = TRUE;
 
     CPU.Flags = 0;
 
@@ -187,13 +200,14 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     S9xBlit2xSaIFilterInit();
     S9xBlitHQ2xFilterInit();
 
-    gfx_snes_buffer = (uint16 *) malloc(SNES_WIDTH * SNES_HEIGHT_EXTENDED * 2);
-    GFX.Screen = gfx_snes_buffer;
-    GFX.Pitch = (uint32) SNES_WIDTH * 2;
+    GFX.Pitch = SNES_WIDTH * 2 * 2;
+    gfx_snes_buffer = (uint8 *) calloc(GFX.Pitch * ((SNES_HEIGHT_EXTENDED + 4) * 2), 1);
+    GFX.Screen = (uint16 *) (gfx_snes_buffer + (GFX.Pitch * 2 * 2));
 
     C2DUIVideo *video = new PSNESVideo(
-            getUi(), (void **) &gfx_video_buffer, nullptr, Vector2f(SNES_WIDTH * 2, SNES_HEIGHT * 2));
+            getUi(), (void **) &gfx_video_buffer, nullptr, Vector2f(SNES_WIDTH * 2, SNES_HEIGHT_EXTENDED * 2));
     setVideo(video);
+    memset(gfx_video_buffer, 0, SNES_WIDTH * 2 * SNES_HEIGHT_EXTENDED * 2 * 2);
 
     S9xGraphicsInit();
     S9xSetSoundMute(FALSE);
@@ -289,68 +303,81 @@ bool8 S9xInitUpdate() {
  */
 bool8 S9xDeinitUpdate(int width, int height) {
 
-    C2DUIVideo *video = _ui->getUiEmu()->getVideo();
+    Blitter blit = nullptr;
+    static int prevWidth = 0, prevHeight = 0;
     int effect = _ui->getConfig()->getValue(C2DUIOption::ROM_SHADER, true);
-    int scaling = _ui->getConfig()->getValue(C2DUIOption::ROM_SCALING, true);
-    int video_w = scaling > 0 ? width * 2 : width;
-    int video_h = scaling > 0 ? height * 2 : height;
-
-    // TODO: handle multiple snes resolutions
-    if ((int) video->getSize().x != video_w || (int) video->getSize().y != video_h) {
-
-        printf("S9xDeinitUpdate: want: %i x %i, have: %i x %i\n",
-               video_w, video_h, (int) video->getSize().x, (int) video->getSize().y);
-
-        video->resize(Vector2f(video_w, video_h));
-        if (scaling == 0 && height != SNES_HEIGHT_EXTENDED) {
-            // hack/fix snes9x which want SNES_HEIGHT_EXTENDED buffer height
-            free(video->pixels);
-            video->pixels = (unsigned char *) malloc((size_t) (SNES_WIDTH * SNES_HEIGHT_EXTENDED * 2));
-        }
-        video->lock(nullptr, scaling > 0 ? (void **) &gfx_video_buffer : (void **) &GFX.Screen, nullptr);
+    // for video.cpp scaling
+    snes9x_width_extended = (height == 239 || height == 478);
+    C2DUIVideo *video = _ui->getUiEmu()->getVideo();
+    if (prevHeight != height) {
+        printf("video->updateScaling()\n");
         video->updateScaling();
-        if (scaling > 0) {
-            GFX.Screen = gfx_snes_buffer;
-        }
-        S9xBlitClearDelta();
     }
 
-    if (scaling > 0) {
-        switch (effect) {
-            case 1:
-                S9xBlitPixSmooth2x2((uint8 *) GFX.Screen, GFX.Pitch,
-                                    (uint8 *) gfx_video_buffer, video->pitch, width, height);
-                break;
-            case 2:
-                S9xBlitPixTV2x2((uint8 *) GFX.Screen, GFX.Pitch,
-                                (uint8 *) gfx_video_buffer, video->pitch, width, height);
-                break;
-            case 3:
-                S9xBlitPixHQ2x16((uint8 *) GFX.Screen, GFX.Pitch,
-                                 (uint8 *) gfx_video_buffer, video->pitch, width, height);
-                break;
-            case 4:
-                S9xBlitPix2xSaI16((uint8 *) GFX.Screen, GFX.Pitch,
-                                  (uint8 *) gfx_video_buffer, video->pitch, width, height);
-                break;
-            case 5:
-                S9xBlitPixSuper2xSaI16((uint8 *) GFX.Screen, GFX.Pitch,
-                                       (uint8 *) gfx_video_buffer, video->pitch, width, height);
-                break;
-            case 6:
-                S9xBlitPixSuperEagle16((uint8 *) GFX.Screen, GFX.Pitch,
-                                       (uint8 *) gfx_video_buffer, video->pitch, width, height);
-                break;
-            case 7:
-                S9xBlitPixEPX16((uint8 *) GFX.Screen, GFX.Pitch,
-                                (uint8 *) gfx_video_buffer, video->pitch, width, height);
-                break;
-            default:
-                S9xBlitPixSimple2x2((uint8 *) GFX.Screen, GFX.Pitch,
-                                    (uint8 *) gfx_video_buffer, video->pitch, width, height);
-                break;
+    if (effect == VIDEOMODE_BLOCKY || effect == VIDEOMODE_TV || effect == VIDEOMODE_SMOOTH) {
+        if ((width <= SNES_WIDTH) && ((prevWidth != width) || (prevHeight != height))) {
+            printf("S9xBlitClearDelta\n");
+            S9xBlitClearDelta();
         }
     }
+
+    if (width <= SNES_WIDTH) {
+        if (height > SNES_HEIGHT_EXTENDED) {
+            blit = S9xBlitPixSimple2x1;
+        } else {
+            switch (effect) {
+                case VIDEOMODE_TV:
+                    blit = S9xBlitPixTV2x2;
+                    break;
+                case VIDEOMODE_SMOOTH:
+                    blit = S9xBlitPixSmooth2x2;
+                    break;
+                case VIDEOMODE_SUPEREAGLE:
+                    blit = S9xBlitPixSuperEagle16;
+                    break;
+                case VIDEOMODE_2XSAI:
+                    blit = S9xBlitPix2xSaI16;
+                    break;
+                case VIDEOMODE_SUPER2XSAI:
+                    blit = S9xBlitPixSuper2xSaI16;
+                    break;
+                case VIDEOMODE_EPX:
+                    blit = S9xBlitPixEPX16;
+                    break;
+                case VIDEOMODE_HQ2X:
+                    blit = S9xBlitPixHQ2x16;
+                    break;
+                default:
+                    blit = S9xBlitPixSimple2x2;
+                    break;
+            }
+        }
+    } else if (height <= SNES_HEIGHT_EXTENDED) {
+        switch (effect) {
+            default:
+                blit = S9xBlitPixSimple1x2;
+                break;
+            case VIDEOMODE_TV:
+                blit = S9xBlitPixTV1x2;
+                break;
+        }
+    } else {
+        blit = S9xBlitPixSimple1x1;
+    }
+
+    blit((uint8 *) GFX.Screen, GFX.Pitch, gfx_video_buffer, video->pitch, width, height);
+
+    if (height < prevHeight) {
+        int p = video->pitch >> 2;
+        for (int y = SNES_HEIGHT * 2; y < SNES_HEIGHT_EXTENDED * 2; y++) {
+            auto *d = (uint32 *) (gfx_video_buffer + y * video->pitch);
+            for (int x = 0; x < p; x++)
+                *d++ = 0;
+        }
+    }
+
+    prevWidth = width;
+    prevHeight = height;
 
     video->unlock();
 #ifdef __SWITCH__

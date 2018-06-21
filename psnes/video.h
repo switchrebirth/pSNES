@@ -7,10 +7,6 @@
 
 #include <cstring>
 
-#ifdef __SWITCH__
-#include "TODO"
-#else
-
 namespace c2dui {
 
     class PSNESVideo : public C2DUIVideo {
@@ -26,5 +22,5 @@ namespace c2dui {
         C2DUIGuiMain *ui;
     };
 }
-#endif //  __SWITCH__
+
 #endif //_PSNESVIDEO_H_

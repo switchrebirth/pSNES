@@ -111,13 +111,13 @@ int main(int argc, char **argv) {
     renderer = (Renderer *) new C2DRenderer(Vector2f(SCR_W, SCR_H));
 #ifndef __PSP2__
     renderer->setShaderList(new ShaderList());
-    renderer->getShaderList()->add("SMOOTH", nullptr);
     renderer->getShaderList()->add("TV2X", nullptr);
-    renderer->getShaderList()->add("HQ2X", nullptr);
+    renderer->getShaderList()->add("SMOOTH", nullptr);
+    renderer->getShaderList()->add("SUPEREAGLE", nullptr);
     renderer->getShaderList()->add("2XSAI", nullptr);
     renderer->getShaderList()->add("SUPER2XSAI", nullptr);
-    renderer->getShaderList()->add("SUPEREAGLE", nullptr);
     renderer->getShaderList()->add("EPX", nullptr);
+    renderer->getShaderList()->add("HQ2X", nullptr);
 #endif
     inp = new C2DInput();
     io = new C2DIo();
