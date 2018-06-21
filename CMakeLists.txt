@@ -39,6 +39,7 @@ endif ()
 # you should (may) only need to port libcross2d library.
 include(libcross2dui/libcross2d/Toolchain.cmake)
 add_subdirectory(libcross2dui)
+SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
 
 execute_process(COMMAND "date" "+%Y.%m.%d" OUTPUT_VARIABLE BUILD_DATE OUTPUT_STRIP_TRAILING_WHITESPACE)
 
@@ -51,9 +52,6 @@ set(SNES9X_INC
         snes9x
         snes9x/apu
         snes9x/apu/bapu
-        snes9x/apu/bapu/dsp
-        snes9x/apu/bapu/smp
-        snes9x/apu/bapu/snes
         snes9x/filter
         )
 
@@ -70,16 +68,11 @@ list(REMOVE_ITEM SNES9X_SRC
         ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/spc7110dec.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/spc7110emu.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/srtcemu.cpp
-        #${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/blit.cpp
-        #${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/xbrz.cpp
-        #${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/hq2x.cpp
-        #${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/2xsai.cpp
-        #${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/epx.cpp
-        #${CMAKE_CURRENT_SOURCE_DIR}/snes9x/filter/snes_ntsc.c
         ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/apu/bapu/smp/algorithms.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/apu/bapu/smp/core.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/apu/bapu/smp/memory.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/apu/bapu/smp/timing.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/snes9x/apu/bapu/smp/iplrom.cpp
         )
 
 set(SNES9X_CFLAGS
@@ -94,7 +87,7 @@ set(SNES9X_CFLAGS
         )
 
 if (BUILD_DEBUG)
-    list(APPEND SNES9X_CFLAGS -O0 -g)
+    list(APPEND SNES9X_CFLAGS -g -O2)
 endif (BUILD_DEBUG)
 
 set(SNES9X_LDFLAGS m z png)
@@ -161,7 +154,7 @@ endif (BUILD_PSP2)
 add_executable(${CMAKE_PROJECT_NAME}.elf ${PSNES_SRC} ${SNES9X_SRC} ${UNZIP_SRC} ${JMA_SRC})
 target_include_directories(${CMAKE_PROJECT_NAME}.elf PRIVATE ${PSNES_INC} ${SNES9X_INC} ${UNZIP_INC} ${JMA_INC})
 target_compile_options(${CMAKE_PROJECT_NAME}.elf PRIVATE ${SNES9X_CFLAGS})
-target_compile_options(${CMAKE_PROJECT_NAME}.elf PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-std=c++11 -fpermissive -fno-rtti>)
+target_compile_options(${CMAKE_PROJECT_NAME}.elf PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
 target_link_libraries(${CMAKE_PROJECT_NAME}.elf cross2dui ${SNES9X_LDFLAGS})
 
 #####################
