@@ -8,12 +8,62 @@
 using namespace c2d;
 using namespace c2dui;
 
-extern bool snes9x_width_extended;
+extern bool snes9x_height_extended;
 
 PSNESVideo::PSNESVideo(C2DUIGuiMain *gui, void **_pixels, int *_pitch, const c2d::Vector2f &size)
         : C2DUIVideo(gui, _pixels, _pitch, size) {
     ui = gui;
 }
+
+#ifdef __SWITCH__
+
+void PSNESVideo::unlock() {
+
+    unsigned short *tex_buf = (unsigned short *) pixels;
+    int x, y, w, h, cx, cy;
+    unsigned int p, r, g, b;
+    u32 fb_w, fb_h;
+    u32 pixel;
+
+    Vector2f screen = ui->getRenderer()->getSize();
+    s32 vw = (s32) (screen.x / getScale().x);
+    s32 vh = (s32) (screen.y / getScale().y);
+
+    gfxConfigureResolution(vw, vh);
+    u32 *fb_buf = (u32 *) gfxGetFramebuffer(&fb_w, &fb_h);
+
+    w = (int) getSize().x;
+    h = (int) getSize().y;
+    cx = (fb_w - w) / 2;
+    cy = (fb_h - h) / 2;
+    if (!snes9x_height_extended) {
+        cy = (int) ((float) cy * 1.065f);
+    }
+
+    //printf("res:%ix%i | fb:%ix%i | tex:%ix%i | scale:%fx%f\n",
+    //       vw, vh, fb_w, fb_h, (int) getSize().x, (int) getSize().y, getScale().x, getScale().y);
+
+    int maxY = snes9x_height_extended ? h : (int) ((float) h * 0.935f);
+
+    for (y = 0; y < maxY; y++) {
+        for (x = 0; x < w; x++) {
+
+            p = tex_buf[y * w + x];
+            r = ((p & 0xf800) >> 11) << 3;
+            g = ((p & 0x07e0) >> 5) << 2;
+            b = (p & 0x001f) << 3;
+            pixel = RGBA8_MAXALPHA(r, g, b);
+
+            fb_buf[(u32) gfxGetFramebufferDisplayOffset((u32) x + cx, (u32) y + cy)] = pixel;
+        }
+    }
+
+    gfxFlushBuffers();
+    gfxSwapBuffers();
+    gfxWaitForVsync();
+}
+
+#endif
 
 void PSNESVideo::updateScaling() {
 
@@ -69,8 +119,13 @@ void PSNESVideo::updateScaling() {
 
     setOriginCenter();
     // remove snes9x border if needed
-    float posY = snes9x_width_extended ? screen.y / 2 : (screen.y / 2) * 1.065f;
-    float scaleY = snes9x_width_extended ? sy : sy * 1.065f;
+    float posY = snes9x_height_extended ? screen.y / 2 : (screen.y / 2) * 1.065f;
+    float scaleY = snes9x_height_extended ? sy : sy * 1.065f;
     setPosition(screen.x / 2, posY);
     setScale(sx, scaleY);
+
+#ifdef __SWITCH__
+    // clear fb before changing res/rot
+    clear();
+#endif
 }

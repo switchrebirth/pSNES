@@ -37,7 +37,7 @@ enum {
 static uint8 *gfx_snes_buffer;
 static uint8 *gfx_video_buffer;
 static int snes9x_prev_width = 0, snes9x_prev_height = 0;
-bool snes9x_width_extended = false;
+bool snes9x_height_extended = false;
 
 static const char *s9x_base_dir = nullptr;
 
@@ -239,7 +239,7 @@ void PSNESGuiEmu::stop() {
     free(gfx_snes_buffer);
     snes9x_prev_width = 0;
     snes9x_prev_height = 0;
-    snes9x_width_extended = false;
+    snes9x_height_extended = false;
 
     C2DUIGuiEmu::stop();
 
@@ -312,7 +312,7 @@ bool8 S9xDeinitUpdate(int width, int height) {
     Blitter blit = nullptr;
     int effect = _ui->getConfig()->getValue(C2DUIOption::ROM_SHADER, true);
     // for video.cpp scaling
-    snes9x_width_extended = (height == 239 || height == 478);
+    snes9x_height_extended = (height == 239 || height == 478);
     C2DUIVideo *video = _ui->getUiEmu()->getVideo();
     if (snes9x_prev_height != height) {
         printf("video->updateScaling()\n");
