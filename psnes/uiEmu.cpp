@@ -36,6 +36,7 @@ enum {
 
 static uint8 *gfx_snes_buffer;
 static uint8 *gfx_video_buffer;
+static int snes9x_prev_width = 0, snes9x_prev_height = 0;
 bool snes9x_width_extended = false;
 
 static const char *s9x_base_dir = nullptr;
@@ -234,6 +235,9 @@ void PSNESGuiEmu::stop() {
     S9xDeinitAPU();
 
     free(gfx_snes_buffer);
+    snes9x_prev_width = 0;
+    snes9x_prev_height = 0;
+    snes9x_width_extended = false;
 
     C2DUIGuiEmu::stop();
 
@@ -304,18 +308,17 @@ bool8 S9xInitUpdate() {
 bool8 S9xDeinitUpdate(int width, int height) {
 
     Blitter blit = nullptr;
-    static int prevWidth = 0, prevHeight = 0;
     int effect = _ui->getConfig()->getValue(C2DUIOption::ROM_SHADER, true);
     // for video.cpp scaling
     snes9x_width_extended = (height == 239 || height == 478);
     C2DUIVideo *video = _ui->getUiEmu()->getVideo();
-    if (prevHeight != height) {
+    if (snes9x_prev_height != height) {
         printf("video->updateScaling()\n");
         video->updateScaling();
     }
 
     if (effect == VIDEOMODE_BLOCKY || effect == VIDEOMODE_TV || effect == VIDEOMODE_SMOOTH) {
-        if ((width <= SNES_WIDTH) && ((prevWidth != width) || (prevHeight != height))) {
+        if ((width <= SNES_WIDTH) && ((snes9x_prev_width != width) || (snes9x_prev_height != height))) {
             printf("S9xBlitClearDelta\n");
             S9xBlitClearDelta();
         }
@@ -367,7 +370,7 @@ bool8 S9xDeinitUpdate(int width, int height) {
 
     blit((uint8 *) GFX.Screen, GFX.Pitch, gfx_video_buffer, video->pitch, width, height);
 
-    if (height < prevHeight) {
+    if (height < snes9x_prev_height) {
         int p = video->pitch >> 2;
         for (int y = SNES_HEIGHT * 2; y < SNES_HEIGHT_EXTENDED * 2; y++) {
             auto *d = (uint32 *) (gfx_video_buffer + y * video->pitch);
@@ -376,8 +379,8 @@ bool8 S9xDeinitUpdate(int width, int height) {
         }
     }
 
-    prevWidth = width;
-    prevHeight = height;
+    snes9x_prev_width = width;
+    snes9x_prev_height = height;
 
     video->unlock();
 #ifdef __SWITCH__
