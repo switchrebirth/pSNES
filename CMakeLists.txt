@@ -20,7 +20,7 @@ set(BUILD_NX_GL OFF CACHE BOOL "Build with NX (SWITCH) support (software, osmesa
 set(BUILD_PFBA OFF CACHE BOOL "Build with PFBA support")
 set(BUILD_SNES9X ON CACHE BOOL "Build with SNES9X support")
 
-set(UPDATE_CONFIG ON CACHE BOOL "Force config file updating")
+set(UPDATE_CONFIG OFF CACHE BOOL "Force config file updating")
 
 option(BUILD_SOUND "Build with audio support" ON)
 option(BUILD_SCREENSHOT "Build with screenshot support" ON)

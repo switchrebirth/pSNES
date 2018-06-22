@@ -15,13 +15,6 @@ using namespace c2dui;
 PSNESConfig::PSNESConfig(Renderer *renderer, const std::string &home, int version)
         : C2DUIConfig(home, version) {
 
-    // add default roms paths
-    getRomPaths()->clear();
-    getRomPaths()->emplace_back(home + "roms/");
-    for (size_t i = 1; i < C2DUI_ROMS_PATHS_MAX; i++) {
-        getRomPaths()->emplace_back(home + "roms" + std::to_string((int) i) + "/");
-    }
-
     // add hardware list
     getHardwareList()->emplace_back(HARDWARE_PREFIX_ALL, "All");
     std::vector<std::string> hardware_names;
@@ -29,20 +22,14 @@ PSNESConfig::PSNESConfig(Renderer *renderer, const std::string &home, int versio
         hardware_names.emplace_back(i.name);
     }
 
-    ////////////////////////////////////////////////////////////
-    // options needs to be in sync/order with "C2DUIOption::Index"
-    // TODO: change this requirement
-    ////////////////////////////////////////////////////////////
     std::vector<C2DUIOption> *ui_options = getOptions(false);
-    std::vector<C2DUIOption> *rom_options = getOptions(true);
 
     // main/gui config
     ui_options->emplace_back(
             C2DUIOption("MAIN", {"MAIN"}, 0, C2DUIOption::Index::MENU_MAIN, C2DUIOption::Type::MENU));
     ui_options->emplace_back(C2DUIOption("SHOW_ALL", {"WORKING", "ALL"}, 1, C2DUIOption::Index::GUI_SHOW_ALL));
     ui_options->emplace_back(C2DUIOption("SHOW_CLONES", {"OFF", "ON"}, 0, C2DUIOption::Index::GUI_SHOW_CLONES));
-    ui_options->emplace_back(C2DUIOption("SHOW_HARDWARE", hardware_names, 0, C2DUIOption::Index::GUI_SHOW_HARDWARE,
-                                         C2DUIOption::Type::HIDDEN));
+    ui_options->emplace_back(C2DUIOption("USE_DATABASE", {"OFF", "ON"}, 0, C2DUIOption::Index::GUI_USE_DATABASE));
     ui_options->emplace_back(
             C2DUIOption("FULLSCREEN", {"OFF", "ON"}, 1, C2DUIOption::Index::GUI_FULLSCREEN, C2DUIOption::Type::HIDDEN));
 #ifdef __SWITCH__
@@ -75,24 +62,8 @@ PSNESConfig::PSNESConfig(Renderer *renderer, const std::string &home, int versio
         ui_options->emplace_back(
                 C2DUIOption("EFFECT", {"NA"}, 0, C2DUIOption::Index::ROM_SHADER, C2DUIOption::Type::HIDDEN));
     }
-#ifdef __PSP2__
-    ui_options->emplace_back(
-            C2DUIOption("ROTATION", {"OFF", "ON", "FLIP", "CAB MODE"}, 0, C2DUIOption::Index::ROM_ROTATION,
-                        C2DUIOption::Type::HIDDEN));
-#else
-    ui_options->emplace_back(
-            C2DUIOption("ROTATION", {"OFF", "ON", "FLIP"}, 0, C2DUIOption::Index::ROM_ROTATION,
-                        C2DUIOption::Type::HIDDEN));
-#endif
     ui_options->emplace_back(
             C2DUIOption("SHOW_FPS", {"OFF", "ON"}, 0, C2DUIOption::Index::ROM_SHOW_FPS, C2DUIOption::Type::HIDDEN));
-    ui_options->emplace_back(C2DUIOption("FRAMESKIP", {"OFF", "1", "2", "3", "4", "5", "6", "7", "8", "9"},
-                                         0, C2DUIOption::Index::ROM_FRAMESKIP, C2DUIOption::Type::HIDDEN));
-    ui_options->emplace_back(
-            C2DUIOption("NEOBIOS", {"UNUSED"},
-                        0, C2DUIOption::Index::ROM_NEOBIOS, C2DUIOption::Type::HIDDEN));
-    ui_options->emplace_back(
-            C2DUIOption("AUDIO", {"OFF", "ON"}, 1, C2DUIOption::Index::ROM_AUDIO, C2DUIOption::Type::HIDDEN));
 
     // joystick
     ui_options->emplace_back(
@@ -180,15 +151,8 @@ PSNESConfig::PSNESConfig(Renderer *renderer, const std::string &home, int versio
                                          C2DUIOption::Index::KEY_START1, C2DUIOption::Type::INPUT));// ENTER
 #endif
 
-    //
-    ui_options->emplace_back(C2DUIOption("END", {"END"}, 0, C2DUIOption::Index::END, C2DUIOption::Type::MENU));
-
-
     // set default rom options
-    rom_options->clear();
-    for (unsigned int i = C2DUIOption::Index::MENU_ROM_OPTIONS; i < C2DUIOption::Index::END; i++) {
-        rom_options->emplace_back(ui_options->at(i));
-    }
+    reset();
 
     // load/overwrite configuration from file
     load();
