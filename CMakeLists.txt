@@ -9,8 +9,8 @@ set(PSNES_VERSION_MINOR 2)
 set(BUILD_SFML OFF CACHE BOOL "Build with SFML support")
 set(BUILD_SDL1 OFF CACHE BOOL "Build with SDL1 support (software, osmesa) support")
 set(BUILD_SDL1_GL OFF CACHE BOOL "Build with SDL1 support (hardware rendering, fast, needs BUILD_SDL1=ON)")
-set(BUILD_SDL2 ON CACHE BOOL "Build with SDL2 (software) support")
-set(BUILD_SDL2_GL ON CACHE BOOL "Build with SDL2 support (hardware rendering, fast, needs BUILD_SDL2=ON)")
+set(BUILD_SDL2 OFF CACHE BOOL "Build with SDL2 (software) support")
+set(BUILD_SDL2_GL OFF CACHE BOOL "Build with SDL2 support (hardware rendering, fast, needs BUILD_SDL2=ON)")
 set(BUILD_PSP2 OFF CACHE BOOL "Build with PSP2 support")
 set(BUILD_PS3 OFF CACHE BOOL "Build with PS3 support")
 set(BUILD_3DS OFF CACHE BOOL "Build with 3DS support")
@@ -137,6 +137,7 @@ if (BUILD_PSP2)
     #####################
     # PSP2 PLATORM
     #####################
+    list(APPEND SNES9X_LDFLAGS ScePower_stub)
 elseif (BUILD_NX)
     #####################
     # NX PLATORM
@@ -161,9 +162,9 @@ target_link_libraries(${CMAKE_PROJECT_NAME}.elf cross2dui ${SNES9X_LDFLAGS})
 # PSP2 (vita) target
 #####################
 if (BUILD_PSP2)
-    vita_create_self(${CMAKE_PROJECT_NAME}.self ${CMAKE_PROJECT_NAME}.elf)
-    vita_create_vpk(${CMAKE_PROJECT_NAME}.vpk "OPENBOR01" ${CMAKE_PROJECT_NAME}.self
-            VERSION "01.00" NAME "${CMAKE_PROJECT_NAME}")
+    vita_create_self(${PROJECT_NAME}.self ${PROJECT_NAME}.elf)
+    vita_create_vpk(${PROJECT_NAME}.vpk "PSNES0001" ${PROJECT_NAME}.self
+            VERSION "0${PSNES_VERSION_MAJOR}.0${PSNES_VERSION_MINOR}" NAME "pSNES")
 endif (BUILD_PSP2)
 
 #####################

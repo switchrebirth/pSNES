@@ -16,6 +16,14 @@
 #include "uiEmu.h"
 #include "video.h"
 
+#ifdef __PSP2__
+
+#include <psp2/io/dirent.h>
+#include <psp2/kernel/threadmgr.h>
+
+#define mkdir(x, y) sceIoMkdir(x, 0777)
+#endif
+
 using namespace c2d;
 using namespace c2dui;
 
@@ -43,6 +51,24 @@ static const char *s9x_base_dir = nullptr;
 
 static char default_dir[PATH_MAX + 1];
 
+#ifdef __PSP2__
+static const char dirNames[13][32] =
+        {
+                "ux0:/data/psnes/",             // DEFAULT_DIR
+                "ux0:/data/psnes/",             // HOME_DIR
+                "ux0:/data/psnes/",             // ROMFILENAME_DIR
+                "ux0:/data/psnes/roms",          // ROM_DIR
+                "ux0:/data/psnes/sram",         // SRAM_DIR
+                "ux0:/data/psnes/saves",        // SNAPSHOT_DIR
+                "ux0:/data/psnes/screenshots",  // SCREENSHOT_DIR
+                "ux0:/data/psnes/spc",          // SPC_DIR
+                "ux0:/data/psnes/cheat",        // CHEAT_DIR
+                "ux0:/data/psnes/patch",        // PATCH_DIR
+                "ux0:/data/psnes/bios",         // BIOS_DIR
+                "ux0:/data/psnes/log",          // LOG_DIR
+                ""
+        };
+#else
 static const char dirNames[13][32] =
         {
                 "",             // DEFAULT_DIR
@@ -59,6 +85,7 @@ static const char dirNames[13][32] =
                 "log",          // LOG_DIR
                 ""
         };
+#endif
 
 static int make_snes9x_dirs(void);
 
@@ -215,7 +242,8 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     S9xBlitHQ2xFilterInit();
 
     GFX.Pitch = SNES_WIDTH * 2 * 2;
-    gfx_snes_buffer = (uint8 *) calloc(GFX.Pitch * ((SNES_HEIGHT_EXTENDED + 4) * 2), 1);
+    gfx_snes_buffer = (uint8 *) malloc(GFX.Pitch * ((SNES_HEIGHT_EXTENDED + 4) * 2));
+    memset(gfx_snes_buffer, 0, GFX.Pitch * ((SNES_HEIGHT_EXTENDED + 4) * 2));
     GFX.Screen = (uint16 *) (gfx_snes_buffer + (GFX.Pitch * 2 * 2));
 
     C2DUIVideo *video = new PSNESVideo(
@@ -689,6 +717,8 @@ void S9xSyncSpeed() {
         while (!S9xSyncSound()) {
 #ifdef __SWITCH__
             svcSleepThread(1);
+#elif __PSP2__
+            sceKernelDelayThread(1);
 #else
             usleep(0);
 #endif
@@ -698,7 +728,7 @@ void S9xSyncSpeed() {
     if (Settings.DumpStreams)
         return;
 
-#ifndef __SWITCH__ // TODO
+#if !defined(__SWITCH__) && !defined(__PSP2__) // TODO
     if (Settings.HighSpeedSeek > 0)
         Settings.HighSpeedSeek--;
 
@@ -754,6 +784,8 @@ void S9xSyncSpeed() {
         unsigned timeleft = (next1.tv_sec - now.tv_sec) * 1000000 + next1.tv_usec - now.tv_usec;
 #ifdef __SWITCH__
         svcSleepThread(timeleft * 1000);
+#elif __PSP2__
+        sceKernelDelayThread(timeleft);
 #else
         usleep(timeleft);
 #endif

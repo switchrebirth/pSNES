@@ -31,9 +31,11 @@ using namespace c2d;
 using namespace c2dui;
 
 #ifdef __PSP2__
+
 #include <psp2/power.h>
 #include <psp2/io/dirent.h>
 
+#define mkdir(x, y) sceIoMkdir(x, 0777)
 int _newlib_heap_size_user = 192 * 1024 * 1024;
 #define SCR_W   960
 #define SCR_H   544
@@ -108,7 +110,7 @@ int main(int argc, char **argv) {
     buttons.emplace_back(KEY_JOY_ZR_DEFAULT, "ZR");
 #endif
 
-    renderer = (Renderer *) new C2DRenderer(Vector2f(SCR_W, SCR_H));
+    renderer = new C2DRenderer(Vector2f(SCR_W, SCR_H));
 #ifndef __PSP2__
     renderer->setShaderList(new ShaderList());
     renderer->getShaderList()->add("TV2X", nullptr);
