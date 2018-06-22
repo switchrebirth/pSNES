@@ -25,16 +25,16 @@ void PSNESRomList::buildNoDb() {
 
     printf("PSNESRomList::buildNoDb()\n");
 
-    for (unsigned int i = 0; i < C2DUI_ROMS_PATHS_MAX; i++) {
+    for (auto &file : files) {
 
-        if (files[i].empty()) {
+        if (file.empty()) {
             continue;
         }
 
-        for (unsigned int j = 0; j < files[i].size(); j++) {
+        for (auto &j : file) {
             auto *rom = new Rom();
-            rom->name = rom->drv_name = files[i][j].c_str();
-            rom->path = files[i][j].c_str();
+            rom->name = rom->drv_name = j.c_str();
+            rom->path = j.c_str();
             rom->state = RomState::WORKING;
             hardwareList->at(0).supported_count++;
             hardwareList->at(0).available_count++;
@@ -52,6 +52,11 @@ void PSNESRomList::buildNoDb() {
 void PSNESRomList::build() {
 
     printf("PSNESRomList::build()\n");
+
+    if (!ui->getConfig()->getValue(C2DUIOption::Index::GUI_USE_DATABASE)) {
+        buildNoDb();
+        return;
+    }
 
     char path[MAX_PATH];
     char pathUppercase[MAX_PATH]; // sometimes on FAT32 short files appear as all uppercase
@@ -122,18 +127,15 @@ void PSNESRomList::build() {
             pathUppercase[k] = (char) toupper(path[k]);
         }
 
-        for (unsigned int j = 0; j < C2DUI_ROMS_PATHS_MAX; j++) {
-
-            if (files[j].empty()) {
+        for (auto &j : files) {
+            if (j.empty()) {
                 continue;
             }
-
-            auto file = std::find(files[j].begin(), files[j].end(), path);
-            if (file == files[j].end()) {
-                file = std::find(files[j].begin(), files[j].end(), pathUppercase);
+            auto file = std::find(j.begin(), j.end(), path);
+            if (file == j.end()) {
+                file = std::find(j.begin(), j.end(), pathUppercase);
             }
-
-            if (file != files[j].end()) {
+            if (file != j.end()) {
                 rom->path = file->c_str();
                 rom->state = RomState::WORKING;
                 hardwareList->at(0).available_count++;
