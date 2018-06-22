@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 
 # psnes version
 set(PSNES_VERSION_MAJOR 1)
-set(PSNES_VERSION_MINOR 2)
+set(PSNES_VERSION_MINOR 3)
 
 # delete cmake cache folder before changing this option
 set(BUILD_SFML OFF CACHE BOOL "Build with SFML support")
