@@ -17,7 +17,6 @@ static bool sortByName(const C2DUIRomList::Rom *ra, const C2DUIRomList::Rom *rb)
 }
 
 PSNESRomList::PSNESRomList(C2DUIGuiMain *ui, const std::string &emuVersion) : C2DUIRomList(ui, emuVersion) {
-
     printf("PSNESRomList::PSNESRomList()\n");
 }
 
@@ -66,7 +65,7 @@ void PSNESRomList::build() {
     XMLError e = doc.LoadFile(xmlPath);
     if (e != XML_SUCCESS) {
         printf("error: %s\n", tinyxml2::XMLDocument::ErrorIDToName(e));
-        //ui->getUiMessageBox()->show("ERROR", "Could not load db.xml\n\nWill just add any found files...");
+        ui->getUiMessageBox()->show("ERROR", "Could not load db.xml\n\nWill just add any found files...");
         buildNoDb();
         return;
     }
@@ -78,7 +77,7 @@ void PSNESRomList::build() {
         pRoot = doc.FirstChildElement("menu");
         if (!pRoot) {
             printf("error: incorrect db.xml format\n\nWill just add any found files...");
-            //ui->getUiMessageBox()->show("ERROR", "incorrect db.xml format");
+            ui->getUiMessageBox()->show("ERROR", "incorrect db.xml format");
             buildNoDb();
             return;
         }
@@ -87,7 +86,7 @@ void PSNESRomList::build() {
     XMLNode *pGame = pRoot->FirstChildElement("game");
     if (!pGame) {
         printf("error: <game> node not found, incorrect format\n\nWill just add any found files...");
-        //ui->getUiMessageBox()->show("ERROR", "incorrect db.xml format");
+        ui->getUiMessageBox()->show("ERROR", "incorrect db.xml format");
         buildNoDb();
         return;
     }
