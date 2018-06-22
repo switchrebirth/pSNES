@@ -17,7 +17,6 @@ pSNES: Portable Snes9x
 - Nintendo Switch (libnx, sdl2)
 
 ### Capabilities
-- Support SuperFX, high resolutions games and more
 - Support preview images (png), named as the rom name with png extension instead zip, in the "previews" directory (to be created if needed).
 - Support save states
 - Support 2x, 3x, fit, fit 4/3 and fullscreen hardware linear scaling
