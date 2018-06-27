@@ -20,7 +20,7 @@ PSNESRomList::PSNESRomList(C2DUIGuiMain *ui, const std::string &emuVersion) : C2
     printf("PSNESRomList::PSNESRomList()\n");
 }
 
-void PSNESRomList::buildNoDb() {
+void PSNESRomList::buildNoDb(bool use_icons) {
 
     printf("PSNESRomList::buildNoDb()\n");
 
@@ -43,6 +43,24 @@ void PSNESRomList::buildNoDb() {
             hardwareList->at(0).supported_count++;
             hardwareList->at(0).available_count++;
             rom->color = COL_GREEN;
+            // load icon if needed, only for parent roms
+            if (use_icons && !rom->parent) {
+                // try removing the extension (drv_name has extension (.zip, .smc) with psnes and no db.xml)
+                char *drv_name_no_ext = Utility::removeExt(rom->drv_name, '/');
+                if (drv_name_no_ext) {
+                    snprintf(icon_path, 1023, "%sicons/%s.png",
+                             ui->getConfig()->getHomePath()->c_str(), drv_name_no_ext);
+                    if (ui->getIo()->exist(icon_path)) {
+                        rom->icon = new C2DTexture(icon_path);
+                        rom->icon->setDeleteMode(C2DObject::DeleteMode::Manual);
+                        if (!rom->icon->available) {
+                            delete (rom->icon);
+                            rom->icon = nullptr;
+                        }
+                    }
+                    free(drv_name_no_ext);
+                }
+            }
             list.push_back(rom);
         }
     }
@@ -57,14 +75,15 @@ void PSNESRomList::build() {
 
     printf("PSNESRomList::build()\n");
 
+    bool use_icons = ui->getConfig()->getValue(C2DUIOption::Index::GUI_SHOW_ICONS) == 1;
+
     if (!ui->getConfig()->getValue(C2DUIOption::Index::GUI_USE_DATABASE)) {
-        buildNoDb();
+        buildNoDb(use_icons);
         return;
     }
 
     char path[MAX_PATH];
     char pathUppercase[MAX_PATH]; // sometimes on FAT32 short files appear as all uppercase
-    bool use_icons = ui->getConfig()->getValue(C2DUIOption::Index::GUI_SHOW_ICONS) == 1;
 
     char xmlPath[512];
     snprintf(xmlPath, 511, "%sdb.xml", ui->getConfig()->getHomePath()->c_str());
@@ -72,7 +91,7 @@ void PSNESRomList::build() {
     if (e != XML_SUCCESS) {
         printf("error: %s\n", tinyxml2::XMLDocument::ErrorIDToName(e));
         ui->getUiMessageBox()->show("ERROR", "Could not load db.xml\n\nWill just add any found files...");
-        buildNoDb();
+        buildNoDb(use_icons);
         return;
     }
 
@@ -84,7 +103,7 @@ void PSNESRomList::build() {
         if (!pRoot) {
             printf("error: incorrect db.xml format\n\nWill just add any found files...");
             ui->getUiMessageBox()->show("ERROR", "incorrect db.xml format");
-            buildNoDb();
+            buildNoDb(use_icons);
             return;
         }
     }
@@ -93,7 +112,7 @@ void PSNESRomList::build() {
     if (!pGame) {
         printf("error: <game> node not found, incorrect format\n\nWill just add any found files...");
         ui->getUiMessageBox()->show("ERROR", "incorrect db.xml format");
-        buildNoDb();
+        buildNoDb(use_icons);
         return;
     }
 
@@ -131,22 +150,6 @@ void PSNESRomList::build() {
                 if (!rom->icon->available) {
                     delete (rom->icon);
                     rom->icon = nullptr;
-                }
-            } else {
-                // try removing the extension (drv_name has extension (.zip, .smc) with psnes and no db.xml)
-                char *drv_name_no_ext = Utility::removeExt(rom->drv_name, '/');
-                if (drv_name_no_ext) {
-                    snprintf(icon_path, 1023, "%sicons/%s.png",
-                             ui->getConfig()->getHomePath()->c_str(), drv_name_no_ext);
-                    if (ui->getIo()->exist(icon_path)) {
-                        rom->icon = new C2DTexture(icon_path);
-                        rom->icon->setDeleteMode(C2DObject::DeleteMode::Manual);
-                        if (!rom->icon->available) {
-                            delete (rom->icon);
-                            rom->icon = nullptr;
-                        }
-                    }
-                    free(drv_name_no_ext);
                 }
             }
         }

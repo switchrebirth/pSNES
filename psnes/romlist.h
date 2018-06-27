@@ -15,7 +15,7 @@ public:
 
     ~PSNESRomList();
 
-    void buildNoDb();
+    void buildNoDb(bool use_icons);
 
     void build() override;
 
