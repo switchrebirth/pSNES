@@ -186,18 +186,18 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     S9xUnmapAllControls();
     for (uint32 i = 0; i < 4; i++) {
         S9xSetController(i, CTL_JOYPAD, (int8) i, 0, 0, 0);
-        S9xMapButton(0 + (i * 12), S9xGetCommandT(getButtonId(i, "Up").c_str()), false);
-        S9xMapButton(1 + (i * 12), S9xGetCommandT(getButtonId(i, "Down").c_str()), false);
-        S9xMapButton(2 + (i * 12), S9xGetCommandT(getButtonId(i, "Left").c_str()), false);
-        S9xMapButton(3 + (i * 12), S9xGetCommandT(getButtonId(i, "Right").c_str()), false);
-        S9xMapButton(4 + (i * 12), S9xGetCommandT(getButtonId(i, "A").c_str()), false);
-        S9xMapButton(5 + (i * 12), S9xGetCommandT(getButtonId(i, "B").c_str()), false);
-        S9xMapButton(6 + (i * 12), S9xGetCommandT(getButtonId(i, "X").c_str()), false);
-        S9xMapButton(7 + (i * 12), S9xGetCommandT(getButtonId(i, "Y").c_str()), false);
-        S9xMapButton(8 + (i * 12), S9xGetCommandT(getButtonId(i, "L").c_str()), false);
-        S9xMapButton(9 + (i * 12), S9xGetCommandT(getButtonId(i, "R").c_str()), false);
-        S9xMapButton(10 + (i * 12), S9xGetCommandT(getButtonId(i, "Start").c_str()), false);
-        S9xMapButton(11 + (i * 12), S9xGetCommandT(getButtonId(i, "Select").c_str()), false);
+        S9xMapButton(0 + (i * 12), S9xGetCommandT(getButtonId(i + 1, "Up").c_str()), false);
+        S9xMapButton(1 + (i * 12), S9xGetCommandT(getButtonId(i + 1, "Down").c_str()), false);
+        S9xMapButton(2 + (i * 12), S9xGetCommandT(getButtonId(i + 1, "Left").c_str()), false);
+        S9xMapButton(3 + (i * 12), S9xGetCommandT(getButtonId(i + 1, "Right").c_str()), false);
+        S9xMapButton(4 + (i * 12), S9xGetCommandT(getButtonId(i + 1, "A").c_str()), false);
+        S9xMapButton(5 + (i * 12), S9xGetCommandT(getButtonId(i + 1, "B").c_str()), false);
+        S9xMapButton(6 + (i * 12), S9xGetCommandT(getButtonId(i + 1, "X").c_str()), false);
+        S9xMapButton(7 + (i * 12), S9xGetCommandT(getButtonId(i + 1, "Y").c_str()), false);
+        S9xMapButton(8 + (i * 12), S9xGetCommandT(getButtonId(i + 1, "L").c_str()), false);
+        S9xMapButton(9 + (i * 12), S9xGetCommandT(getButtonId(i + 1, "R").c_str()), false);
+        S9xMapButton(10 + (i * 12), S9xGetCommandT(getButtonId(i + 1, "Start").c_str()), false);
+        S9xMapButton(11 + (i * 12), S9xGetCommandT(getButtonId(i + 1, "Select").c_str()), false);
     }
     S9xReportControllers();
 
