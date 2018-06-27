@@ -15,8 +15,11 @@
 #include "c2dui.h"
 #include "uiEmu.h"
 #include "video.h"
+
 #ifdef __SWITCH__
+
 #include "unzip_rom.h"
+
 #endif
 
 #ifdef __PSP2__
@@ -169,8 +172,8 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     Settings.DumpStreamsMaxFrames = -1;
     Settings.StretchScreenshots = 1;
     Settings.SnapshotScreenshots = TRUE;
-    Settings.SkipFrames = AUTO_FRAMERATE;
-    Settings.TurboSkipFrames = 15;
+    Settings.SkipFrames = 0;
+    Settings.TurboSkipFrames = 0;
     Settings.CartAName[0] = 0;
     Settings.CartBName[0] = 0;
     Settings.SupportHiRes = TRUE;
@@ -744,9 +747,7 @@ void S9xSyncSpeed() {
 
     if (Settings.SoundSync) {
         while (!S9xSyncSound()) {
-#ifdef __SWITCH__
-            svcSleepThread(1);
-#elif __PSP2__
+#ifdef __PSP2__
             sceKernelDelayThread(1);
 #else
             usleep(0);
@@ -757,7 +758,14 @@ void S9xSyncSpeed() {
     if (Settings.DumpStreams)
         return;
 
-#if !defined(__SWITCH__) && !defined(__PSP2__) // TODO
+#ifdef __SWITCH__
+    IPPU.FrameSkip = 0;
+    IPPU.SkippedFrames = 0;
+    IPPU.RenderThisFrame = TRUE;
+    return;
+#endif
+
+#if !defined(__SWITCH__) && !defined(__PSP2__)
     if (Settings.HighSpeedSeek > 0)
         Settings.HighSpeedSeek--;
 
@@ -811,9 +819,7 @@ void S9xSyncSpeed() {
     while (timercmp(&next1, &now, >)) {
         // If we're ahead of time, sleep a while.
         unsigned timeleft = (next1.tv_sec - now.tv_sec) * 1000000 + next1.tv_usec - now.tv_usec;
-#ifdef __SWITCH__
-        svcSleepThread(timeleft * 1000);
-#elif __PSP2__
+#ifdef __PSP2__
         sceKernelDelayThread(timeleft);
 #else
         usleep(timeleft);
