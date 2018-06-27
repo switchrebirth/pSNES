@@ -24,16 +24,21 @@ void PSNESRomList::buildNoDb() {
 
     printf("PSNESRomList::buildNoDb()\n");
 
-    for (auto &file : files) {
+    for (auto &fileList : files) {
 
-        if (file.empty()) {
+        if (fileList.empty()) {
             continue;
         }
 
-        for (auto &j : file) {
+        for (auto &file : fileList) {
+            if (!Utility::endsWith(file, ".zip")
+                || !Utility::endsWith(file, ".smc")
+                || !Utility::endsWith(file, ".sfc")) {
+                continue;
+            }
             auto *rom = new Rom();
-            rom->name = rom->drv_name = j.c_str();
-            rom->path = j.c_str();
+            rom->name = rom->drv_name = file.c_str();
+            rom->path = file.c_str();
             rom->state = RomState::WORKING;
             hardwareList->at(0).supported_count++;
             hardwareList->at(0).available_count++;
