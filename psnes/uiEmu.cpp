@@ -128,6 +128,13 @@ PSNESGuiEmu::PSNESGuiEmu(C2DUIGuiMain *ui) : C2DUIGuiEmu(ui) {
 
 int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
 
+    getUi()->getUiProgressBox()->setTitle(rom->name);
+    getUi()->getUiProgressBox()->setMessage("Please wait...");
+    getUi()->getUiProgressBox()->setProgress(0);
+    getUi()->getUiProgressBox()->setVisibility(c2d::C2DObject::Visible);
+    getUi()->getUiProgressBox()->setLayer(1000);
+    getUi()->getRenderer()->flip();
+
     strncpy(default_dir, getUi()->getConfig()->getHomePath()->c_str(), PATH_MAX);
     s9x_base_dir = default_dir;
 
@@ -172,12 +179,16 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     if (!Memory.Init() || !S9xInitAPU()) {
         printf("Could not initialize Snes9x Memory.\n");
         stop();
+        getUi()->getUiProgressBox()->setProgress(0);
+        getUi()->getUiProgressBox()->setVisibility(c2d::C2DObject::Hidden);
         return -1;
     }
 
     if (!S9xInitSound(100, 0)) {
         printf("Could not initialize Snes9x Sound.\n");
         stop();
+        getUi()->getUiProgressBox()->setProgress(0);
+        getUi()->getUiProgressBox()->setVisibility(c2d::C2DObject::Hidden);
         return -1;
     }
     S9xSetSoundMute(TRUE);
@@ -212,6 +223,8 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     if (!Memory.LoadROM(file)) {
         printf("Could not open ROM: %s\n", file);
         stop();
+        getUi()->getUiProgressBox()->setProgress(0);
+        getUi()->getUiProgressBox()->setVisibility(c2d::C2DObject::Hidden);
         return -1;
     }
 
@@ -239,6 +252,11 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     gfx_snes_buffer = (uint8 *) malloc(GFX.Pitch * ((SNES_HEIGHT_EXTENDED + 4) * 2));
     memset(gfx_snes_buffer, 0, GFX.Pitch * ((SNES_HEIGHT_EXTENDED + 4) * 2));
     GFX.Screen = (uint16 *) (gfx_snes_buffer + (GFX.Pitch * 2 * 2));
+
+    getUi()->getUiProgressBox()->setProgress(1);
+    getUi()->getRenderer()->flip();
+    getUi()->getRenderer()->delay(500);
+    getUi()->getUiProgressBox()->setVisibility(c2d::C2DObject::Hidden);
 
     C2DUIVideo *video = new PSNESVideo(
             getUi(), (void **) &gfx_video_buffer, nullptr, Vector2f(SNES_WIDTH * 2, SNES_HEIGHT_EXTENDED * 2));
