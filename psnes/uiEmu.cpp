@@ -15,6 +15,9 @@
 #include "c2dui.h"
 #include "uiEmu.h"
 #include "video.h"
+#ifdef __SWITCH__
+#include "unzip_rom.h"
+#endif
 
 #ifdef __PSP2__
 
@@ -178,17 +181,17 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
 
     if (!Memory.Init() || !S9xInitAPU()) {
         printf("Could not initialize Snes9x Memory.\n");
-        stop();
         getUi()->getUiProgressBox()->setProgress(0);
         getUi()->getUiProgressBox()->setVisibility(c2d::C2DObject::Hidden);
+        stop();
         return -1;
     }
 
     if (!S9xInitSound(100, 0)) {
         printf("Could not initialize Snes9x Sound.\n");
-        stop();
         getUi()->getUiProgressBox()->setProgress(0);
         getUi()->getUiProgressBox()->setVisibility(c2d::C2DObject::Hidden);
+        stop();
         return -1;
     }
     S9xSetSoundMute(TRUE);
@@ -218,13 +221,20 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     S9xSetRenderPixelFormat(RGB565);
 #endif
 
-    char file[512];
-    snprintf(file, 511, "%s%s", getUi()->getConfig()->getRomPath(0), rom->path);
-    if (!Memory.LoadROM(file)) {
-        printf("Could not open ROM: %s\n", file);
-        stop();
+    std::string file = std::string(*getUi()->getConfig()->getRomPath(0) + rom->path);
+#ifdef __SWITCH__
+    // can't find a memory leak on switch... seems located in zip loading code...
+    // extract the rom...
+    std::string file_cache = std::string(*getUi()->getConfig()->getHomePath() + "cache.bin");
+    Unzip::extract(file, file_cache);
+    file = file_cache;
+    getUi()->getUiProgressBox()->setProgress(0.5f);
+#endif
+    if (!Memory.LoadROM(file.c_str())) {
+        printf("Could not open ROM: %s\n", file.c_str());
         getUi()->getUiProgressBox()->setProgress(0);
         getUi()->getUiProgressBox()->setVisibility(c2d::C2DObject::Hidden);
+        stop();
         return -1;
     }
 
@@ -251,7 +261,8 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     GFX.Pitch = SNES_WIDTH * 2 * 2;
     gfx_snes_buffer = (uint8 *) malloc(GFX.Pitch * ((SNES_HEIGHT_EXTENDED + 4) * 2));
     memset(gfx_snes_buffer, 0, GFX.Pitch * ((SNES_HEIGHT_EXTENDED + 4) * 2));
-    GFX.Screen = (uint16 *) (gfx_snes_buffer + (GFX.Pitch * 2 * 2));
+    GFX.Screen = (uint16 *) gfx_snes_buffer;
+    //(uint16 *) (gfx_snes_buffer + (GFX.Pitch * 2 * 2));
 
     getUi()->getUiProgressBox()->setProgress(1);
     getUi()->getRenderer()->flip();
@@ -295,7 +306,7 @@ void PSNESGuiEmu::stop() {
     C2DUIGuiEmu::stop();
 
 #ifndef NOSOUND
-    getUi()->removeAudio();
+    getUi()->deleteAudio();
 #endif
 }
 
