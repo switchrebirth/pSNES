@@ -64,6 +64,7 @@ void PSNESRomList::build() {
 
     char path[MAX_PATH];
     char pathUppercase[MAX_PATH]; // sometimes on FAT32 short files appear as all uppercase
+    bool use_icons = ui->getConfig()->getValue(C2DUIOption::Index::GUI_SHOW_ICONS) == 1;
 
     char xmlPath[512];
     snprintf(xmlPath, 511, "%sdb.xml", ui->getConfig()->getHomePath()->c_str());
@@ -120,6 +121,36 @@ void PSNESRomList::build() {
             rom->manufacturer = element->GetText();
         }
 
+        // load icon if needed, only for parent roms
+        if (use_icons && !rom->parent) {
+            snprintf(icon_path, 1023, "%sicons/%s.png",
+                     ui->getConfig()->getHomePath()->c_str(), rom->drv_name);
+            if (ui->getIo()->exist(icon_path)) {
+                rom->icon = new C2DTexture(icon_path);
+                rom->icon->setDeleteMode(C2DObject::DeleteMode::Manual);
+                if (!rom->icon->available) {
+                    delete (rom->icon);
+                    rom->icon = nullptr;
+                }
+            } else {
+                // try removing the extension (drv_name has extension (.zip, .smc) with psnes and no db.xml)
+                char *drv_name_no_ext = Utility::removeExt(rom->drv_name, '/');
+                if (drv_name_no_ext) {
+                    snprintf(icon_path, 1023, "%sicons/%s.png",
+                             ui->getConfig()->getHomePath()->c_str(), drv_name_no_ext);
+                    if (ui->getIo()->exist(icon_path)) {
+                        rom->icon = new C2DTexture(icon_path);
+                        rom->icon->setDeleteMode(C2DObject::DeleteMode::Manual);
+                        if (!rom->icon->available) {
+                            delete (rom->icon);
+                            rom->icon = nullptr;
+                        }
+                    }
+                    free(drv_name_no_ext);
+                }
+            }
+        }
+
         // add rom to "ALL" game list
         hardwareList->at(0).supported_count++;
         if (rom->parent) {
@@ -131,15 +162,15 @@ void PSNESRomList::build() {
             pathUppercase[k] = (char) toupper(path[k]);
         }
 
-        for (auto &j : files) {
-            if (j.empty()) {
+        for (auto &fileList : files) {
+            if (fileList.empty()) {
                 continue;
             }
-            auto file = std::find(j.begin(), j.end(), path);
-            if (file == j.end()) {
-                file = std::find(j.begin(), j.end(), pathUppercase);
+            auto file = std::find(fileList.begin(), fileList.end(), path);
+            if (file == fileList.end()) {
+                file = std::find(fileList.begin(), fileList.end(), pathUppercase);
             }
-            if (file != j.end()) {
+            if (file != fileList.end()) {
                 rom->path = file->c_str();
                 rom->state = RomState::WORKING;
                 hardwareList->at(0).available_count++;
@@ -180,6 +211,20 @@ void PSNESRomList::build() {
     }
 
     std::sort(list.begin(), list.end(), sortByName);
+
+    if (use_icons) {
+        // set childs with no icon to parent icon
+        for (auto rom : list) {
+            if (!rom->icon && rom->parent) {
+                auto it = std::find_if(list.begin(), list.end(), [&](const Rom *r) {
+                    return r->drv_name == rom->parent;
+                });
+                if (it != list.end()) {
+                    rom->icon = (*it)->icon;
+                }
+            }
+        }
+    }
 
     // cleanup
     C2DUIRomList::build();

@@ -179,7 +179,11 @@ if (BUILD_NX)
     add_custom_target(${PROJECT_NAME}_switch_release.zip
             DEPENDS ${PROJECT_NAME}.nro
             COMMAND rm -rf ${CMAKE_BINARY_DIR}/release/psnes
-            COMMAND mkdir -p ${CMAKE_BINARY_DIR}/release/psnes && mkdir -p ${CMAKE_BINARY_DIR}/release/psnes/roms
+            COMMAND mkdir -p ${CMAKE_BINARY_DIR}/release/psnes
+            COMMAND mkdir -p ${CMAKE_BINARY_DIR}/release/psnes/roms
+            COMMAND mkdir -p ${CMAKE_BINARY_DIR}/release/psnes/titles
+            COMMAND mkdir -p ${CMAKE_BINARY_DIR}/release/psnes/previews
+            COMMAND mkdir -p ${CMAKE_BINARY_DIR}/release/psnes/icons
             COMMAND cp -f ${CMAKE_BINARY_DIR}/psnes.nro ${CMAKE_BINARY_DIR}/release/psnes/psnes.nro
             COMMAND cp -r ${CMAKE_SOURCE_DIR}/psnes/data/skin ${CMAKE_BINARY_DIR}/release/psnes/
             COMMAND cp -r ${CMAKE_SOURCE_DIR}/psnes/data/nx/skin ${CMAKE_BINARY_DIR}/release/psnes/
