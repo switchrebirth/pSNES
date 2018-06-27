@@ -32,8 +32,8 @@ void PSNESRomList::buildNoDb() {
 
         for (auto &file : fileList) {
             if (!Utility::endsWith(file, ".zip")
-                || !Utility::endsWith(file, ".smc")
-                || !Utility::endsWith(file, ".sfc")) {
+                && !Utility::endsWith(file, ".smc")
+                && !Utility::endsWith(file, ".sfc")) {
                 continue;
             }
             auto *rom = new Rom();
