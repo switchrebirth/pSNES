@@ -299,19 +299,33 @@ int PSNESGuiEmu::update() {
     Input::Player *players = getUi()->getInput()->update();
 
     // process menu
-    if ((players[0].state & Input::Key::KEY_START)
-        && (players[0].state & Input::Key::KEY_COIN)) {
+    // look for player 1 menu combo
+    if (((players[0].state & Input::Key::KEY_START) && (players[0].state & Input::Key::KEY_FIRE5))
+        || ((players[0].state & Input::Key::KEY_COIN) && (players[0].state & Input::Key::KEY_FIRE5))
+        || ((players[0].state & Input::Key::KEY_START) && (players[0].state & Input::Key::KEY_FIRE6))
+        || ((players[0].state & Input::Key::KEY_COIN) && (players[0].state & Input::Key::KEY_FIRE6))) {
         pause();
         return UI_KEY_SHOW_MEMU_ROM;
-    } else if ((players[0].state & Input::Key::KEY_START)
-               && (players[0].state & Input::Key::KEY_FIRE5)) {
-        pause();
-        return UI_KEY_SHOW_MEMU_STATE;
-    } else if (players[0].state & EV_RESIZE) {
-        // useful for sdl resize event for example
-        getVideo()->updateScaling();
     }
 
+    // look each players for combos keys
+    for (int i = 0; i < PLAYER_COUNT; i++) {
+        // allow devices with single select/start button to send start/coins (nsw in single joycon mode)
+        if (((players[i].state & Input::Key::KEY_START) && (players[i].state & Input::Key::KEY_FIRE1))
+            || ((players[i].state & Input::Key::KEY_COIN) && (players[i].state & Input::Key::KEY_FIRE1))) {
+            players[i].state = Input::Key::KEY_START;
+        } else if (((players[i].state & Input::Key::KEY_START) && (players[i].state & Input::Key::KEY_FIRE2))
+                   || ((players[i].state & Input::Key::KEY_COIN) && (players[i].state & Input::Key::KEY_FIRE2))) {
+            players[i].state = Input::Key::KEY_COIN;
+        }
+    }
+
+    // look for window resize event
+    if (players[0].state & EV_RESIZE) {
+        // useful for sdl resize event
+        getVideo()->updateScaling();
+    }
+    
     S9xReportButton(0, (players[0].state & Input::Key::KEY_UP) > 0);
     S9xReportButton(1, (players[0].state & Input::Key::KEY_DOWN) > 0);
     S9xReportButton(2, (players[0].state & Input::Key::KEY_LEFT) > 0);
