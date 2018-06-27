@@ -176,7 +176,7 @@ if (BUILD_NX)
             DEPENDS ${PROJECT_NAME}.elf
             COMMAND nacptool --create "pSNES" "Cpasjuste" "${PSNES_VERSION_MAJOR}.${PSNES_VERSION_MINOR}" psnes.nacp
             COMMAND elf2nro ${PROJECT_NAME}.elf ${PROJECT_NAME}.nro --icon=${CMAKE_SOURCE_DIR}/psnes/data/nx/icon.jpg --nacp=psnes.nacp)
-    add_custom_target(${PROJECT_NAME}_switch.zip
+    add_custom_target(${PROJECT_NAME}_switch_release.zip
             DEPENDS ${PROJECT_NAME}.nro
             COMMAND rm -rf ${CMAKE_BINARY_DIR}/release/psnes
             COMMAND mkdir -p ${CMAKE_BINARY_DIR}/release/psnes && mkdir -p ${CMAKE_BINARY_DIR}/release/psnes/roms
@@ -184,6 +184,6 @@ if (BUILD_NX)
             COMMAND cp -r ${CMAKE_SOURCE_DIR}/psnes/data/skin ${CMAKE_BINARY_DIR}/release/psnes/
             COMMAND cp -r ${CMAKE_SOURCE_DIR}/psnes/data/nx/skin ${CMAKE_BINARY_DIR}/release/psnes/
             COMMAND cp -f ${CMAKE_SOURCE_DIR}/psnes/data/databases/Super_Nintendo_Entertainment_System_Parent-Clone_20180601-221617_dat-o-matic.xml ${CMAKE_BINARY_DIR}/release/psnes/db.xml
-            COMMAND cd ${CMAKE_BINARY_DIR}/release/psnes && zip -r ../${PROJECT_NAME}-${PSNES_VERSION_MAJOR}.${PSNES_VERSION_MINOR}_switch.zip . && cd ${CMAKE_BINARY_DIR}
+            COMMAND cd ${CMAKE_BINARY_DIR}/release && zip -r ../${PROJECT_NAME}-${PSNES_VERSION_MAJOR}.${PSNES_VERSION_MINOR}_switch.zip psnes && cd ${CMAKE_BINARY_DIR}
             )
 endif (BUILD_NX)
