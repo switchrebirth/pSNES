@@ -233,7 +233,8 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
 #ifdef __SWITCH__
     // can't find a memory leak on switch... seems located in zip loading code...
     // unzip and cache the rom for now...
-    if (Utility::endsWith(file, ".zip")) {
+    bool is_zip = Utility::endsWith(file, ".zip");
+    if (is_zip) {
         std::string sfc_cache = file.substr(0, file.find_last_of('.')) + ".sfc";
         Unzip::extract(file, sfc_cache);
         file = sfc_cache;
@@ -243,14 +244,21 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     if (!Memory.LoadROM(file.c_str())) {
         printf("Could not open ROM: %s\n", file.c_str());
 #ifdef __SWITCH__
-        unlink(file.c_str());
+        if (is_zip) {
+            // delete cached file
+            unlink(file.c_str());
+        }
 #endif
         getUi()->getUiProgressBox()->setVisibility(c2d::C2DObject::Hidden);
         stop();
         return -1;
     }
+
 #ifdef __SWITCH__
-    unlink(file.c_str());
+    // delete cached file has it's now loaded in memory
+    if (is_zip) {
+        unlink(file.c_str());
+    }
 #endif
 
     Memory.LoadSRAM(S9xGetFilename(".srm", SRAM_DIR));
