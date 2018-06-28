@@ -146,6 +146,7 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
 
     memset(&Settings, 0, sizeof(Settings));
     S9xLoadConfigFiles(nullptr, 0);
+    S9xDeleteCheats();
 
     // override S9xLoadConfigFiles
     Settings.MouseMaster = FALSE;
@@ -182,9 +183,10 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
 
     make_snes9x_dirs();
 
+    S9xDeleteCheats();
+
     if (!Memory.Init() || !S9xInitAPU()) {
         printf("Could not initialize Snes9x Memory.\n");
-        getUi()->getUiProgressBox()->setProgress(0);
         getUi()->getUiProgressBox()->setVisibility(c2d::C2DObject::Hidden);
         stop();
         return -1;
@@ -192,7 +194,6 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
 
     if (!S9xInitSound(100, 0)) {
         printf("Could not initialize Snes9x Sound.\n");
-        getUi()->getUiProgressBox()->setProgress(0);
         getUi()->getUiProgressBox()->setVisibility(c2d::C2DObject::Hidden);
         stop();
         return -1;
@@ -227,31 +228,29 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     std::string file = std::string(*getUi()->getConfig()->getRomPath(0) + rom->path);
 #ifdef __SWITCH__
     // can't find a memory leak on switch... seems located in zip loading code...
-    // extract the rom...
-    std::string file_cache = std::string(*getUi()->getConfig()->getHomePath() + "cache.bin");
-    Unzip::extract(file, file_cache);
-    file = file_cache;
+    // unzip and cache the rom for now...
+    if (Utility::endsWith(file, ".zip")) {
+        std::string file_cache = std::string(*getUi()->getConfig()->getHomePath() + "cache.bin");
+        Unzip::extract(file, file_cache);
+        file = file_cache;
+    }
     getUi()->getUiProgressBox()->setProgress(0.5f);
 #endif
     if (!Memory.LoadROM(file.c_str())) {
         printf("Could not open ROM: %s\n", file.c_str());
-        getUi()->getUiProgressBox()->setProgress(0);
         getUi()->getUiProgressBox()->setVisibility(c2d::C2DObject::Hidden);
         stop();
         return -1;
     }
 
-    //S9xDeleteCheats();
-    //S9xCheatsEnable();
     Memory.LoadSRAM(S9xGetFilename(".srm", SRAM_DIR));
-    // TODO
-    /*
+
+    Settings.ApplyCheats = FALSE;
+    S9xDeleteCheats();
+    S9xCheatsEnable();
     if (Settings.ApplyCheats) {
-        if (!S9xLoadCheatFile(S9xGetFilename(".bml", CHEAT_DIR)))
-            S9xLoadCheatFile(S9xGetFilename(".cht", CHEAT_DIR));
+        S9xLoadCheatFile(S9xGetFilename(".cht", CHEAT_DIR));
     }
-    //S9xParseArgsForCheats(argv, argc);
-    */
 
     CPU.Flags = saved_flags;
     Settings.StopEmulation = FALSE;
