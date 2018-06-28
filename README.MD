@@ -15,6 +15,7 @@ pSNES: Portable Snes9x
 
 - Linux (sdl1, sdl2)
 - Nintendo Switch (libnx, sdl2)
+- Sony Ps Vita (vitasdk, vita2d)
 
 ### Capabilities
 - Support save states
