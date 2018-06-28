@@ -163,8 +163,17 @@ target_link_libraries(${CMAKE_PROJECT_NAME}.elf cross2dui ${SNES9X_LDFLAGS})
 #####################
 if (BUILD_PSP2)
     vita_create_self(${PROJECT_NAME}.self ${PROJECT_NAME}.elf)
-    vita_create_vpk(${PROJECT_NAME}.vpk "PSNES0001" ${PROJECT_NAME}.self
-            VERSION "0${PSNES_VERSION_MAJOR}.0${PSNES_VERSION_MINOR}" NAME "pSNES")
+    add_custom_target(${PROJECT_NAME}_vita_release.zip
+            DEPENDS ${PROJECT_NAME}.self
+            COMMAND rm -rf ${CMAKE_BINARY_DIR}/release/psnes
+            COMMAND mkdir -p ${CMAKE_BINARY_DIR}/release/psnes/sce_sys
+            COMMAND ${VITASDK}/bin/vita-mksfoex -s TITLE_ID="PSNES0001" "pSNES" ${CMAKE_BINARY_DIR}/release/psnes/sce_sys/param.sfo
+            COMMAND cp -f ${CMAKE_BINARY_DIR}/${PROJECT_NAME}.self ${CMAKE_BINARY_DIR}/release/psnes/eboot.bin
+            COMMAND cp -r ${CMAKE_SOURCE_DIR}/psnes/data/skin ${CMAKE_BINARY_DIR}/release/psnes/
+            COMMAND cp -r ${CMAKE_SOURCE_DIR}/psnes/data/psp2/skin ${CMAKE_BINARY_DIR}/release/psnes/
+            #COMMAND cp -f ${CMAKE_SOURCE_DIR}/psnes/data/databases/Super_Nintendo_Entertainment_System_Parent-Clone_20180601-221617_dat-o-matic.xml ${CMAKE_BINARY_DIR}/release/psnes/db.xml
+            COMMAND cd ${CMAKE_BINARY_DIR}/release/psnes && zip -r ../../${PROJECT_NAME}-${PSNES_VERSION_MAJOR}.${PSNES_VERSION_MINOR}_vita.vpk . && cd ${CMAKE_BINARY_DIR}
+            )
 endif (BUILD_PSP2)
 
 #####################

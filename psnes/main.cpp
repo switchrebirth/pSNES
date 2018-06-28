@@ -133,7 +133,11 @@ int main(int argc, char **argv) {
     mkdir(configs_path.c_str(), 0755);
 
     // skin
+#ifdef __PSP2__
+    skin = new C2DUISkin("app0:/", buttons);
+#else
     skin = new C2DUISkin(C2DUI_HOME_PATH, buttons);
+#endif
 
     // gui
     ui = new C2DUIGuiMain(renderer, io, inp, nullptr, config, skin);

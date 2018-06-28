@@ -48,8 +48,8 @@ enum {
     VIDEOMODE_HQ2X
 };
 
-static uint8 *gfx_snes_buffer;
-static uint8 *gfx_video_buffer;
+static uint8 *gfx_snes_buffer = nullptr;
+static uint8 *gfx_video_buffer = nullptr;
 static int snes9x_prev_width = 0, snes9x_prev_height = 0;
 bool snes9x_height_extended = false;
 
@@ -172,8 +172,13 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     Settings.DumpStreamsMaxFrames = -1;
     Settings.StretchScreenshots = 1;
     Settings.SnapshotScreenshots = TRUE;
+#ifdef __PSP2__
+    Settings.SkipFrames = AUTO_FRAMERATE;
+    Settings.TurboSkipFrames = 15;
+#else
     Settings.SkipFrames = 0;
     Settings.TurboSkipFrames = 0;
+#endif
     Settings.CartAName[0] = 0;
     Settings.CartBName[0] = 0;
     Settings.SupportHiRes = TRUE;
@@ -270,21 +275,28 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     S9xBlit2xSaIFilterInit();
     S9xBlitHQ2xFilterInit();
 
+    getUi()->getUiProgressBox()->setProgress(1);
+    getUi()->getRenderer()->flip();
+    getUi()->getRenderer()->delay(500);
+    getUi()->getUiProgressBox()->setVisibility(c2d::C2DObject::Hidden);
+
+#ifdef __PSP2__
+    GFX.Pitch = SNES_WIDTH * 2;
+    C2DUIVideo *video = new PSNESVideo(
+            getUi(), (void **) &GFX.Screen, (int *) &GFX.Pitch, Vector2f(SNES_WIDTH, SNES_HEIGHT_EXTENDED));
+    setVideo(video);
+#else
     GFX.Pitch = SNES_WIDTH * 2 * 2;
     gfx_snes_buffer = (uint8 *) malloc(GFX.Pitch * ((SNES_HEIGHT_EXTENDED + 4) * 2));
     memset(gfx_snes_buffer, 0, GFX.Pitch * ((SNES_HEIGHT_EXTENDED + 4) * 2));
     GFX.Screen = (uint16 *) gfx_snes_buffer;
     //(uint16 *) (gfx_snes_buffer + (GFX.Pitch * 2 * 2));
 
-    getUi()->getUiProgressBox()->setProgress(1);
-    getUi()->getRenderer()->flip();
-    getUi()->getRenderer()->delay(500);
-    getUi()->getUiProgressBox()->setVisibility(c2d::C2DObject::Hidden);
-
     C2DUIVideo *video = new PSNESVideo(
             getUi(), (void **) &gfx_video_buffer, nullptr, Vector2f(SNES_WIDTH * 2, SNES_HEIGHT_EXTENDED * 2));
     setVideo(video);
     memset(gfx_video_buffer, 0, SNES_WIDTH * 2 * SNES_HEIGHT_EXTENDED * 2 * 2);
+#endif
 
     S9xGraphicsInit();
     S9xSetSoundMute(FALSE);
@@ -310,7 +322,9 @@ void PSNESGuiEmu::stop() {
     Memory.Deinit();
     S9xDeinitAPU();
 
-    free(gfx_snes_buffer);
+    if (gfx_snes_buffer) {
+        free(gfx_snes_buffer);
+    }
     snes9x_prev_width = 0;
     snes9x_prev_height = 0;
     snes9x_height_extended = false;
@@ -402,6 +416,7 @@ bool8 S9xInitUpdate() {
  */
 bool8 S9xDeinitUpdate(int width, int height) {
 
+#ifndef __PSP2__
     Blitter blit = nullptr;
     int effect = _ui->getConfig()->getValue(C2DUIOption::ROM_SHADER, true);
     // for video.cpp scaling
@@ -478,6 +493,7 @@ bool8 S9xDeinitUpdate(int width, int height) {
     snes9x_prev_height = height;
 
     video->unlock();
+#endif
 #ifdef __SWITCH__
     _ui->getRenderer()->flip(false);
 #else
@@ -757,7 +773,7 @@ void S9xSyncSpeed() {
     if (Settings.SoundSync) {
         while (!S9xSyncSound()) {
 #ifdef __PSP2__
-            sceKernelDelayThread(1);
+            sceKernelDelayThread(0);
 #else
             usleep(0);
 #endif
@@ -774,7 +790,7 @@ void S9xSyncSpeed() {
     return;
 #endif
 
-#if !defined(__SWITCH__) && !defined(__PSP2__)
+#if !defined(__SWITCH__)
     if (Settings.HighSpeedSeek > 0)
         Settings.HighSpeedSeek--;
 
