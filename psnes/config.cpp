@@ -65,6 +65,8 @@ PSNESConfig::PSNESConfig(Renderer *renderer, const std::string &home, int versio
     }
     ui_options->emplace_back(
             C2DUIOption("SHOW_FPS", {"OFF", "ON"}, 0, C2DUIOption::Index::ROM_SHOW_FPS, C2DUIOption::Type::HIDDEN));
+    ui_options->emplace_back(
+            C2DUIOption("CHEATS", {"OFF", "ON"}, 1, C2DUIOption::Index::ROM_CHEATS));
 
     // joystick
     ui_options->emplace_back(

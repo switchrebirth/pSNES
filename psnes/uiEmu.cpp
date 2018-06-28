@@ -146,7 +146,6 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
 
     memset(&Settings, 0, sizeof(Settings));
     S9xLoadConfigFiles(nullptr, 0);
-    S9xDeleteCheats();
 
     // override S9xLoadConfigFiles
     Settings.MouseMaster = FALSE;
@@ -230,25 +229,36 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     // can't find a memory leak on switch... seems located in zip loading code...
     // unzip and cache the rom for now...
     if (Utility::endsWith(file, ".zip")) {
-        std::string file_cache = std::string(*getUi()->getConfig()->getHomePath() + "cache.bin");
-        Unzip::extract(file, file_cache);
-        file = file_cache;
+        std::string sfc_cache = file.substr(0, file.find_last_of('.')) + ".sfc";
+        Unzip::extract(file, sfc_cache);
+        file = sfc_cache;
     }
     getUi()->getUiProgressBox()->setProgress(0.5f);
 #endif
     if (!Memory.LoadROM(file.c_str())) {
         printf("Could not open ROM: %s\n", file.c_str());
+#ifdef __SWITCH__
+        unlink(file.c_str());
+#endif
         getUi()->getUiProgressBox()->setVisibility(c2d::C2DObject::Hidden);
         stop();
         return -1;
     }
+#ifdef __SWITCH__
+    unlink(file.c_str());
+#endif
 
     Memory.LoadSRAM(S9xGetFilename(".srm", SRAM_DIR));
 
     Settings.ApplyCheats = FALSE;
+    if (getUi()->getConfig()->getValue(C2DUIOption::ROM_CHEATS, true)) {
+        printf("Settings.ApplyCheats = TRUE\n");
+        Settings.ApplyCheats = TRUE;
+    }
     S9xDeleteCheats();
     S9xCheatsEnable();
     if (Settings.ApplyCheats) {
+        printf("S9xLoadCheatFile(%s)\n", S9xGetFilename(".cht", CHEAT_DIR));
         S9xLoadCheatFile(S9xGetFilename(".cht", CHEAT_DIR));
     }
 
