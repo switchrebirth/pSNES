@@ -18,11 +18,25 @@ pSNES: Portable Snes9x
 
 ### Capabilities
 - Support save states
+- Support cheats (put a "rom_name.cht"  file with game genie codes in cheat folder)
 - Support 2x, 3x, fit, fit 4/3 and fullscreen hardware linear scaling
 - Support software filtering (tv2x, smooth, supereagle, 2xsai...)
 - Support preview images (png), named as the rom name with png extension instead zip/sfc, in the "previews" directory (to be created if needed).
 - Support database file for rom handling. You'll need a "db.xml" file located alongside the application. The current "db.xml" file comes from dat-o-matic, and contains a complete "no-intro" romset. Your rom files must be zipped and named as per this set (http://datomatic.no-intro.org). You can enable/disable this option from the option menu (restart required).
-- **Does not currently support SX OS**
+
+### Cheat format
+- Example for "Super Mario World (USA).cht" game genie codes
+   ```
+   cheat
+     name: UnlimitedJumps
+     code: 3E2C-AF6F
+     enable
+
+   cheat
+     name: 99Lives
+     code: 14B4-6F07
+     enable
+   ```
 
 ### Installation (switch)
 - copy "psnes" directory to "/switch/" directory on sdcard
