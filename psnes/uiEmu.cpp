@@ -502,11 +502,11 @@ bool8 S9xDeinitUpdate(int width, int height) {
 
     video->unlock();
 #endif
-#ifdef __SWITCH__
-    _ui->getRenderer()->flip(false);
-#else
+//#ifdef __SWITCH__
+//    _ui->getRenderer()->flip(false);
+//#else
     _ui->getRenderer()->flip();
-#endif
+//#endif
 
     return TRUE;
 }

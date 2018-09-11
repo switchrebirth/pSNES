@@ -15,6 +15,7 @@ PSNESVideo::PSNESVideo(C2DUIGuiMain *gui, void **_pixels, int *_pitch, const c2d
     ui = gui;
 }
 
+#if 0
 #ifdef __SWITCH__
 
 void PSNESVideo::unlock() {
@@ -63,6 +64,7 @@ void PSNESVideo::unlock() {
     gfxWaitForVsync();
 }
 
+#endif
 #endif
 
 void PSNESVideo::updateScaling() {
@@ -124,8 +126,8 @@ void PSNESVideo::updateScaling() {
     setPosition(screen.x / 2, posY);
     setScale(sx, scaleY);
 
-#ifdef __SWITCH__
+//#ifdef __SWITCH__
     // clear fb before changing res/rot
-    clear();
-#endif
+//    clear();
+//#endif
 }

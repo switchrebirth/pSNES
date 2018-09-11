@@ -16,9 +16,9 @@ namespace c2dui {
         PSNESVideo(C2DUIGuiMain *ui, void **pixels, int *pitch, const c2d::Vector2f &size);
 
         void updateScaling();
-#ifdef __SWITCH__
-        void unlock();
-#endif
+//#ifdef __SWITCH__
+//        void unlock();
+//#endif
 
     private:
 
