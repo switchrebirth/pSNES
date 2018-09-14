@@ -86,8 +86,8 @@ void PSNESVideo::updateScaling() {
     Vector2f scale_max;
     float sx = 1, sy = 1;
 
-    scale_max.x = screen.x / getSize().x;
-    scale_max.y = screen.y / getSize().y;
+    scale_max.x = screen.x / getTextureRect().width;
+    scale_max.y = screen.y / getTextureRect().height;
 
     switch (scale_mode) {
 
@@ -107,7 +107,7 @@ void PSNESVideo::updateScaling() {
 
         case 4: // fit 4:3
             sy = scale_max.y;
-            sx = std::min(scale_max.x, (sy * getSize().y * 1.33f) / getSize().x);
+            sx = std::min(scale_max.x, (sy * getTextureRect().height * 1.33f) / getTextureRect().width);
             break;
 
         case 5: // fullscreen
