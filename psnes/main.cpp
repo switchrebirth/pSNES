@@ -45,7 +45,7 @@ int _newlib_heap_size_user = 192 * 1024 * 1024;
 #elif __3DS__
 #define SCR_W   400
 #define SCR_H   240
-#elif __NX__
+#elif __SWITCH__
 #define SCR_W   1280
 #define SCR_H   720
 #else
@@ -69,9 +69,33 @@ C2DUIGuiState *uiState;
 
 int main(int argc, char **argv) {
 
+    // create renderer
+    renderer = new C2DRenderer(Vector2f(SCR_W, SCR_H));
+#ifndef __PSP2__
+#ifndef __GL__
+    renderer->setShaderList(new ShaderList());
+#endif
+    renderer->getShaderList()->add("TV2X", nullptr);
+    renderer->getShaderList()->add("SMOOTH", nullptr);
+    renderer->getShaderList()->add("SUPEREAGLE", nullptr);
+    renderer->getShaderList()->add("2XSAI", nullptr);
+    renderer->getShaderList()->add("SUPER2XSAI", nullptr);
+    renderer->getShaderList()->add("EPX", nullptr);
+    renderer->getShaderList()->add("HQ2X", nullptr);
+#endif
+
+    // create inputs, io
+    inp = new C2DInput();
+    io = new C2DIo();
+
+    // load configuration
+    int psnes_version = (__PSNES_VERSION_MAJOR__ * 100) + __PSNES_VERSION_MINOR__;
+    config = new PSNESConfig(renderer, C2DUI_HOME_PATH, psnes_version);
+    std::string configs_path = *config->getHomePath() + "configs";
+    mkdir(configs_path.c_str(), 0755);
+
     // buttons used for ui config menu
     std::vector<C2DUISkin::Button> buttons;
-
 #ifdef __PSP2__
     // set max cpu speed
     scePowerSetArmClockFrequency(444);
@@ -111,29 +135,6 @@ int main(int argc, char **argv) {
     buttons.emplace_back(KEY_JOY_LSTICK_DEFAULT, "LSTICK");
     buttons.emplace_back(KEY_JOY_RSTICK_DEFAULT, "RSTICK");
 #endif
-
-    renderer = new C2DRenderer(Vector2f(SCR_W, SCR_H));
-#ifndef __PSP2__
-#ifndef __GL__
-    renderer->setShaderList(new ShaderList());
-#endif
-    renderer->getShaderList()->add("TV2X", nullptr);
-    renderer->getShaderList()->add("SMOOTH", nullptr);
-    renderer->getShaderList()->add("SUPEREAGLE", nullptr);
-    renderer->getShaderList()->add("2XSAI", nullptr);
-    renderer->getShaderList()->add("SUPER2XSAI", nullptr);
-    renderer->getShaderList()->add("EPX", nullptr);
-    renderer->getShaderList()->add("HQ2X", nullptr);
-#endif
-    inp = new C2DInput();
-    io = new C2DIo();
-
-    // load configuration
-    int psnes_version = (__PSNES_VERSION_MAJOR__ * 100) + __PSNES_VERSION_MINOR__;
-    config = new PSNESConfig(renderer, C2DUI_HOME_PATH, psnes_version);
-    std::string configs_path = *config->getHomePath() + "configs";
-    mkdir(configs_path.c_str(), 0755);
-
     // skin
 #ifdef __PSP2__
     skin = new C2DUISkin("app0:/", buttons);
@@ -143,18 +144,24 @@ int main(int argc, char **argv) {
 
     // gui
     ui = new C2DUIGuiMain(renderer, io, inp, nullptr, config, skin);
+    // build rom list
     std::string snes9x_version = "snes9x ";
     snes9x_version += VERSION;
     romList = new PSNESRomList(ui, snes9x_version);
     romList->build();
+    // rom list ui
     uiRomList = new C2DUIGuiRomList(ui, romList, renderer->getSize());
+    // menu ui
     uiMenu = new PSNESGuiMenu(ui);
+    // in game emu ui
     uiEmu = new PSNESGuiEmu(ui);
+    // states menu ui
     uiState = new C2DUIGuiState(ui);
+    // run that crap
     ui->init(uiRomList, uiMenu, uiEmu, uiState);
     ui->run();
 
-    // quit
+    // cleanup
     delete (ui);
     delete (skin);
     delete (config);
