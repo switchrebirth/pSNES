@@ -294,16 +294,17 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
             getUi(), (void **) &GFX.Screen, (int *) &GFX.Pitch, Vector2f(SNES_WIDTH, SNES_HEIGHT_EXTENDED));
     setVideo(video);
 #else
-    GFX.Pitch = SNES_WIDTH * 2 * 2;
-    gfx_snes_buffer = (uint8 *) malloc(GFX.Pitch * ((SNES_HEIGHT_EXTENDED + 4) * 2));
-    memset(gfx_snes_buffer, 0, GFX.Pitch * ((SNES_HEIGHT_EXTENDED + 4) * 2));
+    GFX.Pitch = SNES_WIDTH * 2;
+    gfx_snes_buffer = (uint8 *) malloc(GFX.Pitch * ((SNES_HEIGHT_EXTENDED + 4)));
+    memset(gfx_snes_buffer, 0, GFX.Pitch * ((SNES_HEIGHT_EXTENDED + 4)));
     GFX.Screen = (uint16 *) gfx_snes_buffer;
     //(uint16 *) (gfx_snes_buffer + (GFX.Pitch * 2 * 2));
 
     C2DUIVideo *video = new PSNESVideo(
-            getUi(), (void **) &gfx_video_buffer, nullptr, Vector2f(SNES_WIDTH * 2, SNES_HEIGHT_EXTENDED * 2));
+            getUi(), (void **) &gfx_video_buffer, nullptr, Vector2f(SNES_WIDTH, SNES_HEIGHT_EXTENDED));
     setVideo(video);
-    memset(gfx_video_buffer, 0, SNES_WIDTH * 2 * SNES_HEIGHT_EXTENDED * 2 * 2);
+    video->updateScaling();
+    memset(gfx_video_buffer, 0, SNES_WIDTH * SNES_HEIGHT_EXTENDED * 2);
 #endif
 
     S9xGraphicsInit();
@@ -425,6 +426,7 @@ bool8 S9xInitUpdate() {
 bool8 S9xDeinitUpdate(int width, int height) {
 
 #ifndef __PSP2__
+    /*
     Blitter blit = nullptr;
     int effect = _ui->getConfig()->getValue(C2DUIOption::ROM_SHADER, true);
     // for video.cpp scaling
@@ -496,6 +498,10 @@ bool8 S9xDeinitUpdate(int width, int height) {
                 *d++ = 0;
         }
     }
+    */
+
+    C2DUIVideo *video = _ui->getUiEmu()->getVideo();
+    S9xBlitPixSimple1x1((uint8 *) GFX.Screen, GFX.Pitch, gfx_video_buffer, video->pitch, width, height);
 
     snes9x_prev_width = width;
     snes9x_prev_height = height;
@@ -728,7 +734,7 @@ const char *S9xChooseMovieFilename(bool8 read_only) {
  * reading a freeze-game file and false when writing a freeze-game file.
  * Open the file filepath and return its pointer file.
  */
-bool8 S9xOpenSnapshotFile(const char *filename, bool8 read_only, STREAM*file) {
+bool8 S9xOpenSnapshotFile(const char *filename, bool8 read_only, STREAM *file) {
 
     if ((*file = OPEN_STREAM(filename, read_only ? "rb" : "wb")))
         return (TRUE);
@@ -828,8 +834,8 @@ void S9xSyncSpeed() {
 
     // If we're on AUTO_FRAMERATE, we'll display frames always only if there's excess time.
     // Otherwise we'll display the defined amount of frames.
-    unsigned limit = (Settings.SkipFrames == AUTO_FRAMERATE) ? (timercmp(&next1, &now, <) ? 10 : 1)
-                                                             : Settings.SkipFrames;
+    unsigned limit = (Settings.SkipFrames == AUTO_FRAMERATE) ? (timercmp(&next1, &now, < ) ? 10 : 1)
+    : Settings.SkipFrames;
 
     IPPU.RenderThisFrame = (++IPPU.SkippedFrames >= limit) ? TRUE : FALSE;
 

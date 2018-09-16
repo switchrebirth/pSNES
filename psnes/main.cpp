@@ -74,7 +74,6 @@ int main(int argc, char **argv) {
 #ifndef __PSP2__
 #ifndef __GL__
     renderer->setShaderList(new ShaderList());
-#endif
     renderer->getShaderList()->add("TV2X", nullptr);
     renderer->getShaderList()->add("SMOOTH", nullptr);
     renderer->getShaderList()->add("SUPEREAGLE", nullptr);
@@ -82,6 +81,7 @@ int main(int argc, char **argv) {
     renderer->getShaderList()->add("SUPER2XSAI", nullptr);
     renderer->getShaderList()->add("EPX", nullptr);
     renderer->getShaderList()->add("HQ2X", nullptr);
+#endif
 #endif
 
     // create inputs, io
