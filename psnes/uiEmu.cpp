@@ -432,12 +432,10 @@ bool8 S9xDeinitUpdate(int width, int height) {
     // for video.cpp scaling
     snes9x_height_extended = (height == 239 || height == 478);
     C2DUIVideo *video = _ui->getUiEmu()->getVideo();
-    /*
     if (snes9x_prev_height != height) {
         printf("video->updateScaling()\n");
         video->updateScaling();
     }
-    */
 
     if (effect == VIDEOMODE_BLOCKY || effect == VIDEOMODE_TV || effect == VIDEOMODE_SMOOTH) {
         if ((width <= SNES_WIDTH) && ((snes9x_prev_width != width) || (snes9x_prev_height != height))) {
