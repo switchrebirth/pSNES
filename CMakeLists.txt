@@ -77,19 +77,21 @@ list(REMOVE_ITEM SNES9X_SRC
 set(SNES9X_CFLAGS
         -fomit-frame-pointer -fno-exceptions
         -pedantic -Wall -W -Wno-unused-parameter
-        -DHAVE_LIBPNG -DHAVE_MKSTEMP -DHAVE_STRINGS_H
+        -DHAVE_MKSTEMP -DHAVE_STRINGS_H
         -DHAVE_SYS_IOCTL_H -DHAVE_STDINT_H -DRIGHTSHIFT_IS_SAR
         -DGFX_MULTI_FORMAT
         -D__PSNES__
         -D__PSNES_VERSION_MAJOR__=${PSNES_VERSION_MAJOR}
         -D__PSNES_VERSION_MINOR__=${PSNES_VERSION_MINOR}
+        #-DHAVE_LIBPNG
         )
 
 if (BUILD_DEBUG)
     list(APPEND SNES9X_CFLAGS -g -O0)
 endif (BUILD_DEBUG)
 
-set(SNES9X_LDFLAGS m z png)
+set(SNES9X_LDFLAGS m z)
+#png
 
 #####################
 # OPTIONS
