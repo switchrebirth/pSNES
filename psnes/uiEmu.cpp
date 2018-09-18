@@ -37,6 +37,7 @@ static C2DUIGuiMain *_ui;
 
 typedef void (*Blitter)(uint8 *, int, uint8 *, int, int, int);
 
+#ifdef __SOFT_SCALERS__
 enum {
     VIDEOMODE_BLOCKY = 0,
     VIDEOMODE_TV,
@@ -47,6 +48,7 @@ enum {
     VIDEOMODE_EPX,
     VIDEOMODE_HQ2X
 };
+#endif
 
 static uint8 *gfx_snes_buffer = nullptr;
 static uint8 *gfx_video_buffer = nullptr;
@@ -280,8 +282,10 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
 
     // Initialize filters
     S9xBlitFilterInit();
+#ifdef __SOFT_SCALERS__
     S9xBlit2xSaIFilterInit();
     S9xBlitHQ2xFilterInit();
+#endif
 
     getUi()->getUiProgressBox()->setProgress(1);
     getUi()->getRenderer()->flip();
@@ -320,8 +324,10 @@ void PSNESGuiEmu::stop() {
     //S9xSaveCheatFile(S9xGetFilename(".bml", CHEAT_DIR));
 
     S9xBlitFilterDeinit();
+#ifdef __SOFT_SCALERS__
     S9xBlit2xSaIFilterDeinit();
     S9xBlitHQ2xFilterDeinit();
+#endif
 
     S9xUnmapAllControls();
     S9xGraphicsDeinit();
@@ -437,18 +443,23 @@ bool8 S9xDeinitUpdate(int width, int height) {
         video->updateScaling();
     }
 
+#ifdef __SOFT_SCALERS__
     if (effect == VIDEOMODE_BLOCKY || effect == VIDEOMODE_TV || effect == VIDEOMODE_SMOOTH) {
+#endif
         if ((width <= SNES_WIDTH) && ((snes9x_prev_width != width) || (snes9x_prev_height != height))) {
             printf("S9xBlitClearDelta\n");
             S9xBlitClearDelta();
         }
+#ifdef __SOFT_SCALERS__
     }
+#endif
 
     if (width <= SNES_WIDTH) {
         if (height > SNES_HEIGHT_EXTENDED) {
             blit = S9xBlitPixSimple2x1;
         } else {
             switch (effect) {
+#ifdef __SOFT_SCALERS__
                 case VIDEOMODE_TV:
                     blit = S9xBlitPixTV2x2;
                     break;
@@ -470,6 +481,7 @@ bool8 S9xDeinitUpdate(int width, int height) {
                 case VIDEOMODE_HQ2X:
                     blit = S9xBlitPixHQ2x16;
                     break;
+#endif
                 default:
                     blit = S9xBlitPixSimple2x2;
                     break;
@@ -480,9 +492,11 @@ bool8 S9xDeinitUpdate(int width, int height) {
             default:
                 blit = S9xBlitPixSimple1x2;
                 break;
+#ifdef __SOFT_SCALERS__
             case VIDEOMODE_TV:
                 blit = S9xBlitPixTV1x2;
                 break;
+#endif
         }
     } else {
         blit = S9xBlitPixSimple1x1;

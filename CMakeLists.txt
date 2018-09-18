@@ -21,6 +21,7 @@ set(BUILD_SNES9X ON CACHE BOOL "Build with SNES9X support")
 
 set(UPDATE_CONFIG ON CACHE BOOL "Force config file updating")
 
+option(BUILD_SOFT_SCALERS "Build with software scalers support" OFF)
 option(BUILD_SOUND "Build with audio support" ON)
 option(BUILD_SCREENSHOT "Build with screenshot support" ON)
 option(BUILD_NETPLAY "Build with screenshot support" OFF)
@@ -60,7 +61,7 @@ file(GLOB SNES9X_SRC
         snes9x/apu/bapu/*.c*
         snes9x/apu/bapu/dsp/*.c*
         snes9x/apu/bapu/smp/*.c*
-        snes9x/filter/*.c*
+        snes9x/filter/blit.cpp
         )
 
 list(REMOVE_ITEM SNES9X_SRC
@@ -96,9 +97,12 @@ set(SNES9X_LDFLAGS m z)
 #####################
 # OPTIONS
 #####################
+if (BUILD_SOFT_SCALERS)
+    file(GLOB SNES9X_SCALERS_SRC snes9x/filter/*.c*)
+    list(APPEND SNES9X_SRC ${SNES9X_SCALERS_SRC})
+    list(APPEND SNES9X_CFLAGS -D__SOFT_SCALERS__)
+endif (BUILD_SOFT_SCALERS)
 if (BUILD_SOUND)
-    #list(APPEND SNES9X_CFLAGS -DUSE_THREADS)
-    #list(APPEND SNES9X_LDFLAGS pthread)
 else ()
     list(APPEND SNES9X_CFLAGS -DNOSOUND)
 endif (BUILD_SOUND)
