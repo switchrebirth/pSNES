@@ -48,14 +48,8 @@ PSNESConfig::PSNESConfig(Renderer *renderer, const std::string &home, int versio
             C2DUIOption("EMULATION", {"EMULATION"}, 0, C2DUIOption::Index::MENU_ROM_OPTIONS, C2DUIOption::Type::MENU));
     ui_options->emplace_back(
             C2DUIOption("SCALING", {"2X", "3X", "FIT", "FIT 4:3", "FULL"}, 3, C2DUIOption::Index::ROM_SCALING));
-//#ifdef __SWITCH__
-//    ui_options->emplace_back(
-//            C2DUIOption("FILTER", {"POINT", "LINEAR"}, 1, C2DUIOption::Index::ROM_FILTER, C2DUIOption::Type::HIDDEN));
-//#else
     ui_options->emplace_back(
             C2DUIOption("FILTER", {"POINT", "LINEAR"}, 0, C2DUIOption::Index::ROM_FILTER));
-//#endif
-
     if (renderer->getShaderList() != nullptr) {
         ui_options->emplace_back(
                 C2DUIOption("EFFECT", renderer->getShaderList()->getNames(), 0, C2DUIOption::Index::ROM_SHADER));
@@ -65,6 +59,8 @@ PSNESConfig::PSNESConfig(Renderer *renderer, const std::string &home, int versio
     }
     ui_options->emplace_back(
             C2DUIOption("SHOW_FPS", {"OFF", "ON"}, 0, C2DUIOption::Index::ROM_SHOW_FPS, C2DUIOption::Type::HIDDEN));
+    ui_options->emplace_back(
+            C2DUIOption("HIGH_RES", {"OFF", "ON"}, 0, C2DUIOption::Index::ROM_HIGH_RES));
     ui_options->emplace_back(
             C2DUIOption("CHEATS", {"OFF", "ON"}, 1, C2DUIOption::Index::ROM_CHEATS));
 
