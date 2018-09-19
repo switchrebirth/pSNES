@@ -313,11 +313,13 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
         C2DUIVideo *video = new PSNESVideo(
                 getUi(), (void **) &gfx_video_buffer, nullptr, Vector2f(SNES_WIDTH * 2, SNES_HEIGHT_EXTENDED * 2));
         setVideo(video);
+        memset(gfx_video_buffer, 0, (size_t) video->pitch * video->getTextureRect().height);
     } else {
         GFX.Pitch = SNES_WIDTH * 2;
         C2DUIVideo *video = new PSNESVideo(
                 getUi(), (void **) &GFX.Screen, (int *) &GFX.Pitch, Vector2f(SNES_WIDTH, SNES_HEIGHT_EXTENDED));
         setVideo(video);
+        memset(GFX.Screen, 0, (size_t) video->pitch * video->getTextureRect().height);
     }
 #endif
 
@@ -529,6 +531,15 @@ bool8 S9xDeinitUpdate(int width, int height) {
         if (height < snes9x_prev_height) {
             int p = video->pitch >> 2;
             for (int y = SNES_HEIGHT * 2; y < SNES_HEIGHT_EXTENDED * 2; y++) {
+                auto *d = (uint32 *) (gfx_video_buffer + y * video->pitch);
+                for (int x = 0; x < p; x++)
+                    *d++ = 0;
+            }
+        }
+    } else {
+        if (height < snes9x_prev_height) {
+            int p = video->pitch >> 2;
+            for (int y = SNES_HEIGHT; y < SNES_HEIGHT_EXTENDED; y++) {
                 auto *d = (uint32 *) (gfx_video_buffer + y * video->pitch);
                 for (int x = 0; x < p; x++)
                     *d++ = 0;
