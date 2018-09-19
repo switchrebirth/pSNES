@@ -33,6 +33,10 @@
 using namespace c2d;
 using namespace c2dui;
 
+#ifndef NDEBUG
+C2DClock timer;
+#endif
+
 static C2DUIGuiMain *_ui;
 
 typedef void (*Blitter)(uint8 *, int, uint8 *, int, int, int);
@@ -186,6 +190,7 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
 
     // big boost when SupportHiRes disabled
     Settings.SupportHiRes = (bool8) getUi()->getConfig()->getValue(C2DUIOption::ROM_HIGH_RES, true);
+    printf("Settings.SupportHiRes: %i\n", Settings.SupportHiRes);
 
     CPU.Flags = 0;
 
@@ -412,6 +417,14 @@ int PSNESGuiEmu::update() {
         S9xReportButton(10 + (i * 12), (players[i].state & Input::Key::KEY_START) > 0);
         S9xReportButton(11 + (i * 12), (players[i].state & Input::Key::KEY_COIN) > 0);
     }
+
+#ifndef NDEBUG
+    float elapsed = timer.getElapsedTime().asSeconds();
+    if (elapsed >= 0.5f) {
+        printf("delta: %f\n", _ui->getRenderer()->getDeltaTime().asSeconds());
+        timer.restart();
+    }
+#endif
 
     return 0;
 }
@@ -963,16 +976,6 @@ void S9xMessage(int type, int number, const char *message) {
  * Used by Snes9x to ask the user for input.
  */
 const char *S9xStringInput(const char *message) {
-    /*
-    static char buffer[256];
-
-    printf("%s: ", message);
-    fflush(stdout);
-
-    if (fgets(buffer, sizeof(buffer) - 2, stdin)) {
-        return buffer;
-    }
-    */
     return nullptr;
 }
 
