@@ -369,7 +369,7 @@ int PSNESGuiEmu::update() {
     int showFps = getUi()->getConfig()->getValue(C2DUIOption::Index::ROM_SHOW_FPS, true);
     getFpsText()->setVisibility(showFps ? Visible : Hidden);
     if (showFps) {
-        sprintf(getFpsString(), "FPS: %.2g/%2d", getUi()->getRenderer()->getFps(), 60);
+        sprintf(getFpsString(), "FPS: %.2g/%2d", getUi()->getRenderer()->getFps(), (int) Memory.ROMFramesPerSecond);
         getFpsText()->setString(getFpsString());
     }
 
