@@ -58,7 +58,7 @@ PSNESConfig::PSNESConfig(Renderer *renderer, const std::string &home, int versio
                 C2DUIOption("EFFECT", {"NA"}, 0, C2DUIOption::Index::ROM_SHADER, C2DUIOption::Type::HIDDEN));
     }
     ui_options->emplace_back(
-            C2DUIOption("SHOW_FPS", {"OFF", "ON"}, 0, C2DUIOption::Index::ROM_SHOW_FPS, C2DUIOption::Type::HIDDEN));
+            C2DUIOption("SHOW_FPS", {"OFF", "ON"}, 0, C2DUIOption::Index::ROM_SHOW_FPS));
     ui_options->emplace_back(
             C2DUIOption("HIGH_RES", {"OFF", "ON"}, 0, C2DUIOption::Index::ROM_HIGH_RES));
     ui_options->emplace_back(
