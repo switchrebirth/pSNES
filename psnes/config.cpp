@@ -61,6 +61,9 @@ PSNESConfig::PSNESConfig(Renderer *renderer, const std::string &home, int versio
             C2DUIOption("SHOW_FPS", {"OFF", "ON"}, 0, C2DUIOption::Index::ROM_SHOW_FPS));
     ui_options->emplace_back(
             C2DUIOption("HIGH_RES", {"OFF", "ON"}, 0, C2DUIOption::Index::ROM_HIGH_RES));
+    ui_options->at(ui_options->size() - 1).setInfo("Only enable high resolution mode for games which can use it,\n"
+                                                   "for example \"Secret Of Mana\".\n\n"
+                                                   "It does have some performance impact.");
     ui_options->emplace_back(
             C2DUIOption("CHEATS", {"OFF", "ON"}, 1, C2DUIOption::Index::ROM_CHEATS));
 
