@@ -62,6 +62,15 @@ void PSNESRomList::buildNoDb(bool use_icons) {
                 }
             }
             list.push_back(rom);
+
+            // UI
+            if (list.size() % 100 == 0) {
+                snprintf(text_str, 511, "Scanning... %i / %i",
+                         hardwareList->at(0).available_count, (int) list.size());
+                text->setString(text_str);
+                ui->getRenderer()->flip();
+            }
+            // UI
         }
     }
 
@@ -204,7 +213,7 @@ void PSNESRomList::build() {
         pGame = pGame->NextSibling();
 
         // UI
-        if (list.size() % 250 == 0) {
+        if (list.size() % 100 == 0) {
             snprintf(text_str, 511, "Scanning... %i / %i",
                      hardwareList->at(0).available_count, (int) list.size());
             text->setString(text_str);

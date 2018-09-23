@@ -2,26 +2,26 @@ cmake_minimum_required(VERSION 3.0)
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 
 # psnes version
-set(PSNES_VERSION_MAJOR 1)
-set(PSNES_VERSION_MINOR 7)
+set(PSNES_VERSION_MAJOR 2)
+set(PSNES_VERSION_MINOR 2)
 
 # delete cmake cache folder before changing this option
 set(BUILD_SFML OFF CACHE BOOL "Build with SFML support")
 set(BUILD_SDL1 OFF CACHE BOOL "Build with SDL1 support (software, osmesa) support")
 set(BUILD_SDL1_GL OFF CACHE BOOL "Build with SDL1 support (hardware rendering, fast, needs BUILD_SDL1=ON)")
-set(BUILD_SDL2 OFF CACHE BOOL "Build with SDL2 (software) support")
-set(BUILD_SDL2_GL OFF CACHE BOOL "Build with SDL2 support (hardware rendering, fast, needs BUILD_SDL2=ON)")
+set(BUILD_SDL2 ON CACHE BOOL "Build with SDL2 (software) support")
+set(BUILD_SDL2_GL ON CACHE BOOL "Build with SDL2 support (hardware rendering, fast, needs BUILD_SDL2=ON)")
 set(BUILD_PSP2 OFF CACHE BOOL "Build with PSP2 support")
 set(BUILD_PS3 OFF CACHE BOOL "Build with PS3 support")
 set(BUILD_3DS OFF CACHE BOOL "Build with 3DS support")
 set(BUILD_NX OFF CACHE BOOL "Build with NX (SWITCH) support")
-set(BUILD_NX_GL OFF CACHE BOOL "Build with NX (SWITCH) support (software, osmesa)")
 
 set(BUILD_PFBA OFF CACHE BOOL "Build with PFBA support")
 set(BUILD_SNES9X ON CACHE BOOL "Build with SNES9X support")
 
 set(UPDATE_CONFIG OFF CACHE BOOL "Force config file updating")
 
+option(BUILD_SOFT_SCALERS "Build with software scalers support" OFF)
 option(BUILD_SOUND "Build with audio support" ON)
 option(BUILD_SCREENSHOT "Build with screenshot support" ON)
 option(BUILD_NETPLAY "Build with screenshot support" OFF)
@@ -61,7 +61,7 @@ file(GLOB SNES9X_SRC
         snes9x/apu/bapu/*.c*
         snes9x/apu/bapu/dsp/*.c*
         snes9x/apu/bapu/smp/*.c*
-        snes9x/filter/*.c*
+        snes9x/filter/blit.cpp
         )
 
 list(REMOVE_ITEM SNES9X_SRC
@@ -78,26 +78,31 @@ list(REMOVE_ITEM SNES9X_SRC
 set(SNES9X_CFLAGS
         -fomit-frame-pointer -fno-exceptions
         -pedantic -Wall -W -Wno-unused-parameter
-        -DHAVE_LIBPNG -DHAVE_MKSTEMP -DHAVE_STRINGS_H
+        -DHAVE_MKSTEMP -DHAVE_STRINGS_H
         -DHAVE_SYS_IOCTL_H -DHAVE_STDINT_H -DRIGHTSHIFT_IS_SAR
         -DGFX_MULTI_FORMAT
         -D__PSNES__
         -D__PSNES_VERSION_MAJOR__=${PSNES_VERSION_MAJOR}
         -D__PSNES_VERSION_MINOR__=${PSNES_VERSION_MINOR}
+        #-DHAVE_LIBPNG
         )
 
 if (BUILD_DEBUG)
     list(APPEND SNES9X_CFLAGS -g -O0)
 endif (BUILD_DEBUG)
 
-set(SNES9X_LDFLAGS m z png)
+set(SNES9X_LDFLAGS m z)
+#png
 
 #####################
 # OPTIONS
 #####################
+if (BUILD_SOFT_SCALERS)
+    file(GLOB SNES9X_SCALERS_SRC snes9x/filter/*.c*)
+    list(APPEND SNES9X_SRC ${SNES9X_SCALERS_SRC})
+    list(APPEND SNES9X_CFLAGS -D__SOFT_SCALERS__)
+endif (BUILD_SOFT_SCALERS)
 if (BUILD_SOUND)
-    #list(APPEND SNES9X_CFLAGS -DUSE_THREADS)
-    #list(APPEND SNES9X_LDFLAGS pthread)
 else ()
     list(APPEND SNES9X_CFLAGS -DNOSOUND)
 endif (BUILD_SOUND)
