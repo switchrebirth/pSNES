@@ -101,12 +101,7 @@ static const char dirNames[13][32] =
 
 static int make_snes9x_dirs(void);
 
-static void S9xAudioCallback(void *userdata, Uint8 *stream, int len) {
-
-    //printf("S9xAudioCallback\n");
-    //_ui->getAudio()->lock();
-    //S9xMixSamples(stream, len >> (Settings.SixteenBitSound ? 1 : 0));
-    //_ui->getAudio()->unlock();
+static void S9xAudioCallback(void *data, Uint8 *stream, int len) {
 
     S9xMixSamples(stream, len >> (Settings.SixteenBitSound ? 1 : 0));
 }
@@ -114,21 +109,6 @@ static void S9xAudioCallback(void *userdata, Uint8 *stream, int len) {
 static void S9xSamplesAvailable(void *data) {
 
     S9xFinalizeSamples();
-
-    //printf("S9xSamplesAvailable\n");
-    //_ui->getAudio()->lock();
-
-    /*
-    Audio *audio = _ui->getUiEmu()->getAudio();
-    if (audio) {
-        uint8 *buffer = (uint8 *) audio->getBuffer();
-        S9xMixSamples(buffer, audio->getBufferLen() >> (Settings.SixteenBitSound ? 1 : 0));
-        S9xFinalizeSamples();
-        audio->play();
-    }
-    */
-    //_ui->getAudio()->unlock();
-
 }
 
 std::string getButtonId(int player, const std::string &name) {
@@ -262,6 +242,7 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
         }
 #endif
         getUi()->getUiProgressBox()->setVisibility(c2d::C2DObject::Hidden);
+        getUi()->getUiMessageBox()->show("ERROR", "INVALID ROM", "OK");
         stop();
         return -1;
     }
