@@ -290,11 +290,15 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
         gfx_snes_buffer = (uint8 *) malloc(GFX.Pitch * ((SNES_HEIGHT_EXTENDED + 4) * 2));
         memset(gfx_snes_buffer, 0, GFX.Pitch * ((SNES_HEIGHT_EXTENDED + 4) * 2));
         GFX.Screen = (uint16 *) gfx_snes_buffer;
-        addVideo(getUi(), (void **) &gfx_video_buffer, nullptr, Vector2f(SNES_WIDTH * 2, SNES_HEIGHT_EXTENDED * 2));
+        PSNESVideo *v = new PSNESVideo(getUi(), (void **) &gfx_video_buffer, nullptr,
+                                       Vector2f(SNES_WIDTH * 2, SNES_HEIGHT_EXTENDED * 2));
+        addVideo(v);
         memset(gfx_video_buffer, 0, (size_t) getVideo()->pitch * getVideo()->getTextureRect().height);
     } else {
         GFX.Pitch = SNES_WIDTH * 2;
-        addVideo(getUi(), (void **) &GFX.Screen, (int *) &GFX.Pitch, Vector2f(SNES_WIDTH, SNES_HEIGHT_EXTENDED));
+        PSNESVideo *v = new PSNESVideo(getUi(), (void **) &GFX.Screen, (int *) &GFX.Pitch,
+                                       Vector2f(SNES_WIDTH, SNES_HEIGHT_EXTENDED));
+        addVideo(v);
         memset(GFX.Screen, 0, (size_t) getVideo()->pitch * getVideo()->getTextureRect().height);
     }
 #endif
