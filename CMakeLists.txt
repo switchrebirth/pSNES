@@ -17,7 +17,7 @@ set(BUILD_3DS OFF CACHE BOOL "Build with 3DS support")
 set(BUILD_NX OFF CACHE BOOL "Build with NX (SWITCH) support")
 
 set(BUILD_PFBA OFF CACHE BOOL "Build with PFBA support")
-set(BUILD_SNES9X ON CACHE BOOL "Build with SNES9X support")
+set(BUILD_SNES ON CACHE BOOL "Build with SNES9X support")
 
 set(UPDATE_CONFIG OFF CACHE BOOL "Force config file updating")
 
@@ -157,11 +157,15 @@ endif (BUILD_PSP2)
 #####################
 # snes9x executable
 #####################
+add_custom_target(${CMAKE_PROJECT_NAME}.data
+        COMMAND cp -rf ${CMAKE_SOURCE_DIR}/psnes/data/skin ${CMAKE_BINARY_DIR}
+        )
 add_executable(${CMAKE_PROJECT_NAME}.elf ${PSNES_SRC} ${SNES9X_SRC} ${UNZIP_SRC} ${JMA_SRC})
 target_include_directories(${CMAKE_PROJECT_NAME}.elf PRIVATE ${PSNES_INC} ${SNES9X_INC} ${UNZIP_INC} ${JMA_INC})
 target_compile_options(${CMAKE_PROJECT_NAME}.elf PRIVATE ${SNES9X_CFLAGS})
 target_compile_options(${CMAKE_PROJECT_NAME}.elf PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>)
 target_link_libraries(${CMAKE_PROJECT_NAME}.elf cross2dui ${SNES9X_LDFLAGS})
+add_dependencies(${CMAKE_PROJECT_NAME}.elf ${CMAKE_PROJECT_NAME}.data)
 
 #####################
 # PSP2 (vita) target

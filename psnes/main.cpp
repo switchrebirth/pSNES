@@ -143,7 +143,7 @@ int main(int argc, char **argv) {
 #endif
 
     // gui
-    ui = new C2DUIGuiMain(renderer, io, inp, nullptr, config, skin);
+    ui = new C2DUIGuiMain(renderer, io, inp, config, skin);
     // build rom list
     std::string snes9x_version = "snes9x ";
     snes9x_version += VERSION;

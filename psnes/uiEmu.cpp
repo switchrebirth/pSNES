@@ -101,31 +101,34 @@ static const char dirNames[13][32] =
 
 static int make_snes9x_dirs(void);
 
-#ifndef NOSOUND
-
 static void S9xAudioCallback(void *userdata, Uint8 *stream, int len) {
 
     //printf("S9xAudioCallback\n");
-    _ui->getAudio()->lock();
-    S9xMixSamples(stream, len >> (Settings.SixteenBitSound ? 1 : 0));
-    _ui->getAudio()->unlock();
-}
+    //_ui->getAudio()->lock();
+    //S9xMixSamples(stream, len >> (Settings.SixteenBitSound ? 1 : 0));
+    //_ui->getAudio()->unlock();
 
-#else
-static uint8 dummy_audio_buffer[128];
-#endif
+    S9xMixSamples(stream, len >> (Settings.SixteenBitSound ? 1 : 0));
+}
 
 static void S9xSamplesAvailable(void *data) {
 
+    S9xFinalizeSamples();
+
     //printf("S9xSamplesAvailable\n");
-#ifdef NOSOUND
-    S9xMixSamples(dummy_audio_buffer, 128);
-    S9xFinalizeSamples();
-#else
-    _ui->getAudio()->lock();
-    S9xFinalizeSamples();
-    _ui->getAudio()->unlock();
-#endif
+    //_ui->getAudio()->lock();
+
+    /*
+    Audio *audio = _ui->getUiEmu()->getAudio();
+    if (audio) {
+        uint8 *buffer = (uint8 *) audio->getBuffer();
+        S9xMixSamples(buffer, audio->getBufferLen() >> (Settings.SixteenBitSound ? 1 : 0));
+        S9xFinalizeSamples();
+        audio->play();
+    }
+    */
+    //_ui->getAudio()->unlock();
+
 }
 
 std::string getButtonId(int player, const std::string &name) {
@@ -165,7 +168,7 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
 #ifdef __SWITCH__
     Settings.SoundPlaybackRate = 48000;
 #else
-    Settings.SoundPlaybackRate = 32000;
+    Settings.SoundPlaybackRate = 48000;
 #endif
     Settings.SoundInputRate = 32000;
     Settings.Transparency = TRUE;
@@ -294,37 +297,34 @@ int PSNESGuiEmu::run(C2DUIRomList::Rom *rom) {
     S9xBlitHQ2xFilterInit();
 #endif
 
-    getUi()->getUiProgressBox()->setProgress(1);
-    getUi()->getRenderer()->flip();
-    getUi()->getRenderer()->delay(500);
-    getUi()->getUiProgressBox()->setVisibility(c2d::C2DObject::Hidden);
+    addAudio(Settings.SoundPlaybackRate,
+             (int) Memory.ROMFramesPerSecond, S9xAudioCallback);
 
 #ifdef __PSP2__
     GFX.Pitch = SNES_WIDTH * 2;
-    C2DUIVideo *video = new PSNESVideo(
-            getUi(), (void **) &GFX.Screen, (int *) &GFX.Pitch, Vector2f(SNES_WIDTH, SNES_HEIGHT_EXTENDED));
-    setVideo(video);
+    addVideo(getUi(), (void **) &GFX.Screen, (int *) &GFX.Pitch, Vector2f(SNES_WIDTH, SNES_HEIGHT_EXTENDED));
 #else
     if (Settings.SupportHiRes) {
         GFX.Pitch = SNES_WIDTH * 2 * 2;
         gfx_snes_buffer = (uint8 *) malloc(GFX.Pitch * ((SNES_HEIGHT_EXTENDED + 4) * 2));
         memset(gfx_snes_buffer, 0, GFX.Pitch * ((SNES_HEIGHT_EXTENDED + 4) * 2));
         GFX.Screen = (uint16 *) gfx_snes_buffer;
-        C2DUIVideo *video = new PSNESVideo(
-                getUi(), (void **) &gfx_video_buffer, nullptr, Vector2f(SNES_WIDTH * 2, SNES_HEIGHT_EXTENDED * 2));
-        setVideo(video);
-        memset(gfx_video_buffer, 0, (size_t) video->pitch * video->getTextureRect().height);
+        addVideo(getUi(), (void **) &gfx_video_buffer, nullptr, Vector2f(SNES_WIDTH * 2, SNES_HEIGHT_EXTENDED * 2));
+        memset(gfx_video_buffer, 0, (size_t) getVideo()->pitch * getVideo()->getTextureRect().height);
     } else {
         GFX.Pitch = SNES_WIDTH * 2;
-        C2DUIVideo *video = new PSNESVideo(
-                getUi(), (void **) &GFX.Screen, (int *) &GFX.Pitch, Vector2f(SNES_WIDTH, SNES_HEIGHT_EXTENDED));
-        setVideo(video);
-        memset(GFX.Screen, 0, (size_t) video->pitch * video->getTextureRect().height);
+        addVideo(getUi(), (void **) &GFX.Screen, (int *) &GFX.Pitch, Vector2f(SNES_WIDTH, SNES_HEIGHT_EXTENDED));
+        memset(GFX.Screen, 0, (size_t) getVideo()->pitch * getVideo()->getTextureRect().height);
     }
 #endif
 
     S9xGraphicsInit();
     S9xSetSoundMute(FALSE);
+
+    getUi()->getUiProgressBox()->setProgress(1);
+    getUi()->getRenderer()->flip();
+    getUi()->getRenderer()->delay(500);
+    getUi()->getUiProgressBox()->setVisibility(c2d::C2DObject::Hidden);
 
     return C2DUIGuiEmu::run(rom);
 }
@@ -357,10 +357,6 @@ void PSNESGuiEmu::stop() {
     snes9x_height_extended = false;
 
     C2DUIGuiEmu::stop();
-
-#ifndef NOSOUND
-    getUi()->deleteAudio();
-#endif
 }
 
 int PSNESGuiEmu::update() {
@@ -956,15 +952,13 @@ void S9xHandlePortCommand(s9xcommand_t cmd, int16 data1, int16 data2) {
  */
 bool8 S9xOpenSoundDevice(void) {
 
-#ifdef NOSOUND
-    printf("S9xOpenSoundDevice (dummy)\n");
-    S9xSetSamplesAvailableCallback(S9xSamplesAvailable, nullptr);
-#else
     printf("S9xOpenSoundDevice\n");
-    Audio *audio = new C2DAudio(Settings.SoundPlaybackRate, 60, S9xAudioCallback);
-    _ui->addAudio(audio);
+    //Audio *audio = new C2DAudio(Settings.SoundPlaybackRate, 60, S9xAudioCallback);
+    //_ui->addAudio(audio);
+    //_ui->getUiEmu()->addAudio(Settings.SoundPlaybackRate,
+    //                          (int) Memory.ROMFramesPerSecond, S9xAudioCallback);
     S9xSetSamplesAvailableCallback(S9xSamplesAvailable, nullptr);
-#endif
+
     return TRUE;
 }
 
